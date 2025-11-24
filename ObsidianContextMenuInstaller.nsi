@@ -11,7 +11,7 @@ RequestExecutionLevel admin
 !include "MUI.nsh"  ; Defines core MUI macros like MUI_PAGE_WELCOME
 !include "MUI2.nsh" ; For modern UI support
 
-!insertmacro MUI_LANGUAGE "English"
+
 
 
 
@@ -35,6 +35,7 @@ UninstallCaption "Uninstall Obsidian Context Menu"
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
+!insertmacro MUI_LANGUAGE "English"
 
 
 
