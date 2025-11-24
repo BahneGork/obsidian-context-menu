@@ -89,6 +89,11 @@ Function PromptForObsidianExe
     Return ; Exit function
 
   ValidateSelection:
+    StrCmp $R0 "" 0 ValidateSelection_Continue ; If $R0 is empty, it means no file was selected
+    MessageBox MB_ICONEXCLAMATION|MB_OK "No file was selected. Please try again."
+    Goto Loop_Prompt
+
+  ValidateSelection_Continue:
     StrCpy $OBSIDIAN_EXE_PATH $R0
     IfFileExists "$OBSIDIAN_EXE_PATH" Return
     MessageBox MB_ICONEXCLAMATION|MB_OK "The selected file does not exist. Please try again."
