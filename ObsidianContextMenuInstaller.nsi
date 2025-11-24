@@ -3,12 +3,15 @@
 !include "MUI2.nsh"
 !include "WinMessages.nsh"
 !include "FileFunc.nsh"
+!include "nsDialogs.nsh"
 
 ; --------------------------------------- 
 ; Declare user variables
 ; --------------------------------------- 
 Var OBSIDIAN_EXE_PATH
 Var OBSIDIAN_EXE_FOLDER
+Var OBSIDIAN_PATH_TEXT
+Var OBSIDIAN_PATH_HWND
 
 Name "Obsidian Context Menu"
 OutFile "ObsidianContextMenu-Setup.exe"
@@ -20,13 +23,22 @@ RequestExecutionLevel user ; per-user install; change to admin if you need HKLM
 ; Pages
 ;--------------------------------
 !insertmacro MUI_PAGE_WELCOME
+Page custom ObsidianPathPage ObsidianPathPageLeave
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 
-!insertmacro MUI_UNPAGE_CONFIRM ; confirmation on uninstall (optional)
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
 
 !insertmacro MUI_LANGUAGE "English"
+
+;--------------------------------
+; Function: .onInit - Initialize installer
+;--------------------------------
+Function .onInit
+  Call FindObsidianExe
+FunctionEnd
 
 ;--------------------------------
 ; Function: Find Obsidian.exe
@@ -39,7 +51,7 @@ Function FindObsidianExe
   StrCpy $0 "$LOCALAPPDATA\Obsidian\Obsidian.exe"
   IfFileExists "$0" 0 FindObsidianExe_CheckProgramFiles
     StrCpy $OBSIDIAN_EXE_PATH $0
-    GetFullPathName $OBSIDIAN_EXE_FOLDER "$OBSIDIAN_EXE_PATH\.."
+    ${GetParent} "$OBSIDIAN_EXE_PATH" $OBSIDIAN_EXE_FOLDER
     Return
 
   FindObsidianExe_CheckProgramFiles:
@@ -47,44 +59,86 @@ Function FindObsidianExe
   StrCpy $0 "$PROGRAMFILES\Obsidian\Obsidian.exe"
   IfFileExists "$0" 0 FindObsidianExe_NotFound
     StrCpy $OBSIDIAN_EXE_PATH $0
-    GetFullPathName $OBSIDIAN_EXE_FOLDER "$OBSIDIAN_EXE_PATH\.."
+    ${GetParent} "$OBSIDIAN_EXE_PATH" $OBSIDIAN_EXE_FOLDER
     Return
 
   FindObsidianExe_NotFound:
-  ; 3. Ask user manually
-  MessageBox MB_ICONINFORMATION|MB_OK "Obsidian.exe not found. Please locate it manually."
-  Call PromptForObsidianExe
-
-  StrCmp $OBSIDIAN_EXE_PATH "" 0 +2
-    Abort "Obsidian.exe path not found. Installation aborted."
-
-  GetFullPathName $OBSIDIAN_EXE_FOLDER "$OBSIDIAN_EXE_PATH\.."
+  ; 3. Path will be empty, custom page will prompt user
+  StrCpy $OBSIDIAN_EXE_PATH ""
   Return
 FunctionEnd
 
 ; -------------------------------- 
-; Function: Prompt user for Obsidian.exe
+; Custom page: Obsidian Path Selection
+; --------------------------------
+Function ObsidianPathPage
+  ; Only show this page if Obsidian.exe wasn't found automatically
+  StrCmp $OBSIDIAN_EXE_PATH "" 0 ObsidianPathPage_Skip
+  
+  !insertmacro MUI_HEADER_TEXT "Obsidian Path" "Please select the path to Obsidian.exe"
+  
+  nsDialogs::Create 1018
+  Pop $0
+  
+  ${NSD_CreateLabel} 0 0 100% 20u "Please select the path to Obsidian.exe:"
+  Pop $0
+  
+  StrCpy $1 "$PROGRAMFILES\Obsidian\Obsidian.exe"
+  
+  ${NSD_CreateText} 0 25u 75% 12u "$1"
+  Pop $OBSIDIAN_PATH_HWND
+  
+  ${NSD_CreateButton} 76% 24u 23% 14u "Browse..."
+  Pop $0
+  ${NSD_OnClick} $0 OnBrowseClick
+  
+  nsDialogs::Show
+  
+  ObsidianPathPage_Skip:
+FunctionEnd
+
+Function ObsidianPathPageLeave
+  ; Only validate if the page was shown
+  StrCmp $OBSIDIAN_EXE_PATH "" 0 ObsidianPathPageLeave_Skip
+  
+  ${NSD_GetText} $OBSIDIAN_PATH_HWND $OBSIDIAN_EXE_PATH
+  StrCmp $OBSIDIAN_EXE_PATH "" ObsidianPathPageLeave_Error 0
+  IfFileExists "$OBSIDIAN_EXE_PATH" ObsidianPathPageLeave_OK ObsidianPathPageLeave_Error
+  
+  ObsidianPathPageLeave_Error:
+    MessageBox MB_ICONEXCLAMATION "Please select a valid Obsidian.exe file."
+    Abort
+  
+  ObsidianPathPageLeave_OK:
+  ${GetParent} "$OBSIDIAN_EXE_PATH" $OBSIDIAN_EXE_FOLDER
+  
+  ObsidianPathPageLeave_Skip:
+FunctionEnd
+
+Function OnBrowseClick
+  ; Get current text as initial directory
+  ${NSD_GetText} $OBSIDIAN_PATH_HWND $1
+  ${GetParent} "$1" $2
+  StrCmp $2 "" 0 +2
+    StrCpy $2 "$PROGRAMFILES\Obsidian"
+  
+  ; Use Windows file dialog
+  nsDialogs::SelectFileDialog open "$2" "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
+  Pop $0
+  StrCmp $0 "" OnBrowseClick_End 0
+  StrCmp $0 "error" OnBrowseClick_End 0
+  ${NSD_SetText} $OBSIDIAN_PATH_HWND $0
+  
+  OnBrowseClick_End:
+FunctionEnd
+
+; -------------------------------- 
+; Function: Prompt user for Obsidian.exe (fallback)
 ; --------------------------------
 Function PromptForObsidianExe
-  Loop_Prompt:
-    ClearErrors
-    MessageBox MB_OK "Bypassing file selection for debug."
-    StrCpy $R0 "$PROGRAMFILES\Obsidian\Obsidian.exe" ; Dummy path for testing
-
-    IfErrors +3
-      ; User picked a file → $0 contains path
-      StrCmp $0 "" 0 ValidateSelection_Continue
-      MessageBox MB_ICONEXCLAMATION "No file selected. Try again."
-      Goto Loop_Prompt
-
-    ; User canceled
-    StrCpy $OBSIDIAN_EXE_PATH ""
-    Return
-
-  ValidateSelection_Continue:
-    StrCpy $OBSIDIAN_EXE_PATH $0
-    IfFileExists "$OBSIDIAN_EXE_PATH" 0 Loop_Prompt
-    Return
+  ; This function is now handled by the custom page
+  ; Keep it for backward compatibility but it shouldn't be called
+  Return
 FunctionEnd
 
 ; -------------------------------- 
@@ -92,10 +146,9 @@ FunctionEnd
 ; --------------------------------
 Section "Install"
 
-  Call FindObsidianExe
-
+  ; Obsidian path should already be set by .onInit or custom page
   StrCmp $OBSIDIAN_EXE_PATH "" 0 +2
-    Abort "Obsidian.exe not found. Installation aborted."
+    Abort "Obsidian.exe path not found. Installation aborted."
 
   SetOutPath "$INSTDIR"
 
@@ -121,8 +174,8 @@ Section "Install"
 
   ; Context menu text
   StrCpy $0 "Open as Obsidian Vault"
-  StrCpy $1 '"$INSTDIR\open_obsidian_vault_helper.bat" "%%1"'
-  StrCpy $2 '"$INSTDIR\open_obsidian_vault_helper.bat" "%%V"'
+  StrCpy $1 'cmd.exe /c """$INSTDIR\open_obsidian_vault_helper.bat"" "%1""'
+  StrCpy $2 'cmd.exe /c """$INSTDIR\open_obsidian_vault_helper.bat"" "%V""'
   StrCpy $3 "$OBSIDIAN_EXE_PATH"
 
   ; Context menu: Directory
@@ -150,6 +203,9 @@ Section "Uninstall"
 
   DeleteRegKey HKCU "Software\Classes\Directory\shell\ObsidianContextMenu"
   DeleteRegKey HKCU "Software\Classes\Directory\Background\shell\ObsidianContextMenu"
+  ; Also delete old keys from batch installer, if they exist
+  DeleteRegKey HKCU "Software\Classes\Directory\shell\Obsidian"
+  DeleteRegKey HKCU "Software\Classes\Directory\Background\shell\Obsidian"
 
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\ObsidianContextMenu"
   DeleteRegKey HKCU "Software\ObsidianContextMenu"
