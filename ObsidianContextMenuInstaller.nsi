@@ -2,6 +2,7 @@
 
 !include "MUI2.nsh"
 !include "WinMessages.nsh"
+!include "FileFunc.nsh"
 
 ; --------------------------------------- 
 ; Declare user variables
@@ -67,8 +68,7 @@ FunctionEnd
 Function PromptForObsidianExe
   Loop_Prompt:
     ClearErrors
-    FileRequest "Please select Obsidian.exe:" "$PROGRAMFILES\Obsidian\Obsidian.exe" \
-      "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
+    GetFileOpenDialog $R0 "Please select Obsidian.exe:" "$PROGRAMFILES\Obsidian\" "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
 
     IfErrors +3
       ; User picked a file → $0 contains path
