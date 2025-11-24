@@ -8,9 +8,23 @@ OutFile "ObsidianContextMenu-Setup.exe"
 InstallDir "$LOCALAPPDATA\ObsidianContextMenu" ; Default installation path
 RequestExecutionLevel admin ; Request administrator privileges
 
-; Pages
-Page directory
-Page instfiles
+; -------------------------------------------------------------------------------------------------------------
+; MUI Settings
+; -------------------------------------------------------------------------------------------------------------
+!include "MUI2.nsh"
+!insertmacro MUI_LANGUAGE "English"
+
+!define MUI_WELCOMEPAGE_TITLE "Welcome to the Obsidian Context Menu Installer"
+!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of the Obsidian Context Menu utility.$\n$\nClick Next to continue."
+!insertmacro MUI_PAGE_WELCOME
+
+!insertmacro MUI_PAGE_DIRECTORY
+
+!insertmacro MUI_PAGE_INSTFILES
+
+!define MUI_FINISHPAGE_NOAUTOCLOSE
+!define MUI_FINISHPAGE_TEXT "Obsidian Context Menu has been successfully installed. You can now right-click on any folder to open it as an Obsidian vault."
+!insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller Settings
 UninstallText "This will completely remove the Obsidian Context Menu entries from your system."
@@ -21,9 +35,6 @@ UninstallCaption "Uninstall Obsidian Context Menu"
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH
 
-; Language (English)
-!include "MUI2.nsh"
-!insertmacro MUI_LANGUAGE "English"
 
 ; -------------------------------------------------------------------------------------------------------------
 ; Functions
