@@ -53,12 +53,12 @@ echo Adding registry keys...
 :: Add registry key for right-clicking on a folder
 reg add "HKEY_CLASSES_ROOT\Directory\shell\Obsidian" /v "" /t REG_SZ /d "Open as Obsidian Vault" /f > nul
 reg add "HKEY_CLASSES_ROOT\Directory\shell\Obsidian" /v "Icon" /t REG_EXPAND_SZ /d "\"%OBSIDIAN_PATH%\"" /f > nul
-reg add "HKEY_CLASSES_ROOT\Directory\shell\Obsidian\command" /v "" /t REG_SZ /d "cmd.exe /c \"\"%HELPER_SCRIPT_PATH%\"\" \"\"%%1\"\"" /f > nul
+reg add "HKEY_CLASSES_ROOT\Directory\shell\Obsidian\command" /v "" /t REG_SZ /d "\"\"%HELPER_SCRIPT_PATH%\"\" \"\"%%1\"\"" /f > nul
 
 :: Add registry key for right-clicking inside a folder's background
 reg add "HKEY_CLASSES_ROOT\Directory\Background\shell\Obsidian" /v "" /t REG_SZ /d "Open as Obsidian Vault" /f > nul
 reg add "HKEY_CLASSES_ROOT\Directory\Background\shell\Obsidian" /v "Icon" /t REG_EXPAND_SZ /d "\"%OBSIDIAN_PATH%\"" /f > nul
-reg add "HKEY_CLASSES_ROOT\Directory\Background\shell\Obsidian\command" /v "" /t REG_SZ /d "cmd.exe /c \"\"%HELPER_SCRIPT_PATH%\"\" \"\"%%V\"\"" /f > nul
+reg add "HKEY_CLASSES_ROOT\Directory\Background\shell\Obsidian\command" /v "" /t REG_SZ /d "\"\"%HELPER_SCRIPT_PATH%\"\" \"\"%%V\"\"" /f > nul
 
 echo.
 echo ============================================================================ 
