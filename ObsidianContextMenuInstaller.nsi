@@ -16,6 +16,9 @@ InstallDir "$LOCALAPPDATA\ObsidianContextMenu"
 InstallDirRegKey HKCU "Software\ObsidianContextMenu" "InstallPath"
 RequestExecutionLevel user ; per-user install; change to admin if you need HKLM
 
+Var OBSIDIAN_EXE_PATH
+Var OBSIDIAN_EXE_FOLDER
+
 ;--------------------------------
 ; Pages
 ;--------------------------------
