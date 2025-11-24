@@ -37,9 +37,10 @@ A simple utility to add an "Open as Obsidian Vault" option to the Windows Explor
 
 This utility works by adding keys to the Windows Registry under `HKEY_CLASSES_ROOT\Directory\shell` and `HKEY_CLASSES_ROOT\Directory\Background\shell`.
 
-The command uses the Obsidian URI scheme (`obsidian://open?vault=VAULT_NAME`) to instruct Obsidian to open a vault. The batch script intelligently extracts the folder name from the path you right-clicked on and passes it to the URI.
-
-**Note:** For the context menu to work, the folder must have been previously opened as a vault in Obsidian, so that Obsidian recognizes its name.
+When you select "Open as Obsidian Vault":
+1.  The script checks if the clicked folder already contains an `.obsidian` subfolder (making it a recognized Obsidian vault).
+2.  If `.obsidian` does **not** exist, the script automatically creates it and populates it with default Obsidian configuration files (app.json, appearance.json, core-plugins.json, workspace.json). This effectively initializes the folder as a new Obsidian vault.
+3.  Finally, it uses the Obsidian URI scheme (`obsidian://open?vault=VAULT_NAME`) to instruct Obsidian to open the vault. The script intelligently extracts the folder name from the path you right-clicked and passes it as the vault name.
 
 ## License
 

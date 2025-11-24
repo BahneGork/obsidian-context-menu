@@ -1,5 +1,6 @@
 @echo off
 setlocal
+set "HELPER_SCRIPT_PATH=%~dp0open_obsidian_vault_helper.bat"
 
 :: ============================================================================ 
 :: Installer for the "Open as Obsidian Vault" Windows Context Menu
@@ -37,13 +38,13 @@ set REG_OBSIDIAN_PATH=%OBSIDIAN_PATH:\=\%
 reg add "HKEY_CLASSES_ROOT\Directory\shell\Obsidian" /v "" /t REG_SZ /d "Open as Obsidian Vault" /f > nul
 reg add "HKEY_CLASSES_ROOT\Directory\shell\Obsidian" /v "Icon" /t REG_EXPAND_SZ /d "%OBSIDPATH%" /f > nul 2>&1
 reg add "HKEY_CLASSES_ROOT\Directory\shell\Obsidian" /v "Icon" /t REG_SZ /d "%OBSIDIAN_PATH%" /f > nul
-reg add "HKEY_CLASSES_ROOT\Directory\shell\Obsidian\command" /v "" /t REG_SZ /d "cmd.exe /c \"for %%i in (\"%%1\" do start \"\" \"obsidian://open?vault=%%~ni\"\"" /f > nul
+reg add "HKEY_CLASSES_ROOT\Directory\shell\Obsidian\command" /v "" /t REG_SZ /d "cmd.exe /c ""%HELPER_SCRIPT_PATH%"" ""%%1""""" /f > nul
 
 :: Add registry key for right-clicking inside a folder's background
 reg add "HKEY_CLASSES_ROOT\Directory\Background\shell\Obsidian" /v "" /t REG_SZ /d "Open as Obsidian Vault" /f > nul
 reg add "HKEY_CLASSES_ROOT\Directory\Background\shell\Obsidian" /v "Icon" /t REG_EXPAND_SZ /d "%OBSIDPATH%" /f > nul 2>&1
 reg add "HKEY_CLASSES_ROOT\Directory\Background\shell\Obsidian" /v "Icon" /t REG_SZ /d "%OBSIDIAN_PATH%" /f > nul
-reg add "HKEY_CLASSES_ROOT\Directory\Background\shell\Obsidian\command" /v "" /t REG_SZ /d "cmd.exe /c \"for %%i in (\"%%V\" do start \"\" \"obsidian://open?vault=%%~ni\"\"" /f > nul
+reg add "HKEY_CLASSES_ROOT\Directory\Background\shell\Obsidian\command" /v "" /t REG_SZ /d "cmd.exe /c ""%HELPER_SCRIPT_PATH%"" ""%%V""""" /f > nul
 
 echo.
 echo ============================================================================ 
