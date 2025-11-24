@@ -2,6 +2,23 @@
 setlocal
 set "HELPER_SCRIPT_PATH=%~dp0open_obsidian_vault_helper.bat"
 
+set "INSTALL_DIR=%LOCALAPPDATA%\ObsidianContextMenu"
+echo.
+echo Installing files to "%INSTALL_DIR%"...
+if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
+
+copy /Y "%~dp0install_obsidian_context_menu.bat" "%INSTALL_DIR%\" >nul
+copy /Y "%~dp0uninstall_obsidian_context_menu.bat" "%INSTALL_DIR%\" >nul
+copy /Y "%~dp0open_obsidian_vault_helper.bat" "%INSTALL_DIR%\" >nul
+xcopy /E /I /Y "%~dp0default_obsidian_config\" "%INSTALL_DIR%\default_obsidian_config\" >nul 2>&1
+
+:: Update HELPER_SCRIPT_PATH to point to the installed location
+set "HELPER_SCRIPT_PATH=%INSTALL_DIR%\open_obsidian_vault_helper.bat"
+
+echo Installation complete. You can safely delete the downloaded files now.
+echo Use the uninstaller in "%INSTALL_DIR%" if needed.
+echo.
+
 :: ============================================================================ 
 :: Installer for the "Open as Obsidian Vault" Windows Context Menu
 :: ============================================================================ 
