@@ -10,7 +10,7 @@
 ; --------------------------------------- 
 Var OBSIDIAN_EXE_PATH
 Var OBSIDIAN_EXE_FOLDER
-Var OBSIDIAN_PATH_TEXT
+
 Var OBSIDIAN_PATH_HWND
 
 Name "Obsidian Context Menu"
@@ -40,31 +40,9 @@ Function .onInit
   Call FindObsidianExe
 FunctionEnd
 
-;--------------------------------
-; Function: Find Obsidian.exe
-;--------------------------------
 Function FindObsidianExe
-  StrCpy $OBSIDIAN_EXE_PATH ""
-  StrCpy $OBSIDIAN_EXE_FOLDER ""
-
-  ; 1. Check LOCALAPPDATA
-  StrCpy $0 "$LOCALAPPDATA\Obsidian\Obsidian.exe"
-  IfFileExists "$0" 0 FindObsidianExe_CheckProgramFiles
-    StrCpy $OBSIDIAN_EXE_PATH $0
-    ${GetParent} "$OBSIDIAN_EXE_PATH" $OBSIDIAN_EXE_FOLDER
-    Return
-
-  FindObsidianExe_CheckProgramFiles:
-  ; 2. Check Program Files
-  StrCpy $0 "$PROGRAMFILES\Obsidian\Obsidian.exe"
-  IfFileExists "$0" 0 FindObsidianExe_NotFound
-    StrCpy $OBSIDIAN_EXE_PATH $0
-    ${GetParent} "$OBSIDIAN_EXE_PATH" $OBSIDIAN_EXE_FOLDER
-    Return
-
-  FindObsidianExe_NotFound:
-  ; 3. Path will be empty, custom page will prompt user
-  StrCpy $OBSIDIAN_EXE_PATH ""
+  MessageBox MB_OK "FindObsidianExe called."
+  StrCpy $OBSIDIAN_EXE_PATH "$PROGRAMFILES\Obsidian\Obsidian.exe"
   Return
 FunctionEnd
 
@@ -132,14 +110,7 @@ Function OnBrowseClick
   OnBrowseClick_End:
 FunctionEnd
 
-; -------------------------------- 
-; Function: Prompt user for Obsidian.exe (fallback)
-; --------------------------------
-Function PromptForObsidianExe
-  ; This function is now handled by the custom page
-  ; Keep it for backward compatibility but it shouldn't be called
-  Return
-FunctionEnd
+
 
 ; -------------------------------- 
 ; INSTALL SECTION
