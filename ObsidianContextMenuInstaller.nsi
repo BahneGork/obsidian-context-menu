@@ -8,10 +8,10 @@ OutFile "ObsidianContextMenu-Setup.exe"
 InstallDir "$LOCALAPPDATA\ObsidianContextMenu" ; Default installation path
 RequestExecutionLevel admin
 
-!include "MUI2.nsh" ; For modern UI support
 !include "MUI.nsh"  ; Defines core MUI macros like MUI_PAGE_WELCOME
+!include "MUI2.nsh" ; For modern UI support
 
-!insertmacro MUI_LANGUAGE "English" ; Request administrator privileges
+!insertmacro MUI_LANGUAGE "English"
 
 
 
