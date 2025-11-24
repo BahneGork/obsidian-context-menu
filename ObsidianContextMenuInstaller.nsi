@@ -48,34 +48,32 @@ Function FindObsidianExe
   StrCpy $OBSIDIAN_EXE_PATH ""
   StrCpy $OBSIDIAN_EXE_FOLDER ""
 
-  ; 1. Check default AppData\Local location
-  ReadRegStr $OBSIDIAN_EXE_FOLDER HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{61AD05DC-4089-4D66-8A33-EB5C7F46B18D}_is1" "InstallLocation"
-  IfFileExists "$OBSIDIAN_EXE_FOLDER\Obsidian.exe" FindObsidianExe_Found
-  StrCpy $OBSIDIAN_EXE_FOLDER "$LOCALAPPDATA\Obsidian"
-  IfFileExists "$OBSIDIAN_EXE_FOLDER\Obsidian.exe" FindObsidianExe_Found
+  ; 1. Check common AppData\Local location
+  StrCpy $0 "$LOCALAPPDATA\Obsidian\Obsidian.exe" ; Use a temporary variable
+  IfFileExists $0 0 FindObsidianExe_CheckProgramFiles
+  StrCpy $OBSIDIAN_EXE_PATH $0
+  GetFullPathName $OBSIDIAN_EXE_FOLDER "$OBSIDIAN_EXE_PATH\.."
+  Return
 
-  ; 2. Ask user if not found
+  FindObsidianExe_CheckProgramFiles:
+  ; 2. Check common Program Files location
+  StrCpy $0 "$PROGRAMFILES\Obsidian\Obsidian.exe" ; Use a temporary variable
+  IfFileExists $0 0 FindObsidianExe_NotFound
+  StrCpy $OBSIDIAN_EXE_PATH $0
+  GetFullPathName $OBSIDIAN_EXE_FOLDER "$OBSIDIAN_EXE_PATH\.."
+  Return
+
+  FindObsidianExe_NotFound:
+  ; 3. Ask user if not found
   MessageBox MB_ICONINFORMATION|MB_OK "Obsidian.exe not found in common locations. Please locate it manually."
-  DirText "Please locate your Obsidian.exe file."
   Call PromptForObsidianExe
 
-  FindObsidianExe_Found:
+  ; If user selected a file, $OBSIDIAN_EXE_PATH will be set
+  StrCmp $OBSIDIAN_EXE_PATH "" 0 FindObsidianExe_FoundManual ; If not empty, proceed
+  Abort "Obsidian.exe path not found. Installation aborted." ; User cancelled or did not select
+
+  FindObsidianExe_FoundManual:
     GetFullPathName $OBSIDIAN_EXE_FOLDER "$OBSIDIAN_EXE_PATH\.."
-    Return
-
-  SelectFilePage:
-    ClearErrors
-    FileRequest "Please select your Obsidian.exe file:" "$PROGRAMFILES\Obsidian\Obsidian.exe" "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
-    IfErrors 0 SelectFilePage_Found
-    Abort "Obsidian.exe not selected. Installation aborted."
-
-  SelectFilePage_Found:
-    StrCpy $OBSIDIAN_EXE_PATH $R0
-    IfFileExists "$OBSIDIAN_EXE_PATH" SelectFilePage_Return
-    MessageBox MB_ICONEXCLAMATION|MB_OK "The selected file does not exist. Please try again."
-    Goto SelectFilePage
-
-  SelectFilePage_Return:
     Return
 FunctionEnd
 
