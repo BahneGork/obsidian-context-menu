@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 :: Get the path to the folder that was clicked in Explorer
 set "TARGET_FOLDER=%~1"
@@ -27,6 +27,9 @@ if not exist "%TARGET_FOLDER%\.obsidian\" (
 )
 
 :: Finally, open the vault in Obsidian
-start "" "obsidian://open?vault=%VAULT_NAME%"
+:: URL-encode the VAULT_NAME to handle spaces and special characters
+for /f "usebackq delims=" %%A in (`powershell -Command "[uri]::EscapeDataString('!VAULT_NAME!')"`) do set "ENCODED_VAULT_NAME=%%A"
+
+start "" "obsidian://open?vault=!ENCODED_VAULT_NAME!"
 
 endlocal
