@@ -57,7 +57,7 @@ Function FindObsidianExe
   ; 2. Ask user if not found
   MessageBox MB_ICONINFORMATION|MB_OK "Obsidian.exe not found in common locations. Please locate it manually."
   DirText "Please locate your Obsidian.exe file."
-  Call SelectFilePage
+  Call PromptForObsidianExe
 
   FindObsidianExe_Found:
     GetFullPathName $OBSIDIAN_EXE_FOLDER "$OBSIDIAN_EXE_PATH\.."
@@ -80,22 +80,20 @@ Function FindObsidianExe
 FunctionEnd
 
 ; Function to handle file selection (if manual location is needed)
-Function SelectFilePage
-  ClearErrors
-  FileRequest "Please select your Obsidian.exe file:" "$PROGRAMFILES\Obsidian\Obsidian.exe" "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
-  IfErrors 0 SelectFilePage_Continue
+Function PromptForObsidianExe
+  Loop_Prompt:
+    ClearErrors
+    FileRequest "Please select your Obsidian.exe file:" "$PROGRAMFILES\Obsidian\Obsidian.exe" "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
+    IfErrors 0 ValidateSelection
+    ; User cancelled FileRequest
+    StrCpy $OBSIDIAN_EXE_PATH "" ; Clear path to indicate abortion
+    Return ; Exit function
 
-  MessageBox MB_ICONEXCLAMATION|MB_OK "Obsidian.exe was not selected. Installation cannot proceed."
-  Abort
-
-SelectFilePage_Continue:
-  StrCpy $OBSIDIAN_EXE_PATH $R0
-  IfFileExists "$OBSIDIAN_EXE_PATH" SelectFilePage_Return
-  MessageBox MB_ICONEXCLAMATION|MB_OK "The selected file does not exist. Please try again."
-  Goto SelectFilePage
-
-SelectFilePage_Return:
-  Return
+  ValidateSelection:
+    StrCpy $OBSIDIAN_EXE_PATH $R0
+    IfFileExists "$OBSIDIAN_EXE_PATH" Return
+    MessageBox MB_ICONEXCLAMATION|MB_OK "The selected file does not exist. Please try again."
+    Goto Loop_Prompt
 FunctionEnd
 
 ; -------------------------------------------------------------------------------------------------------------
