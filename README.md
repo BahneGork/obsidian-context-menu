@@ -23,10 +23,11 @@ A simple utility to add an "Open as Obsidian Vault" option to the Windows Explor
 ### Installation
 
 1.  Go to the [**Releases**](https://github.com/your-username/obsidian-context-menu/releases) page of this repository.
-Download the install_obsidian_context_menu.bat, uninstall_obsidian_context_menu.bat, and open_obsidian_vault_helper.bat files from the latest release.
-3.  Place the scripts anywhere on your computer (e.g., your Desktop).
-4.  Right-click on `install_obsidian_context_menu.bat` and select **"Run as administrator"**. This is necessary because modifying the Windows Registry requires elevated permissions.
-5.  Follow the on-screen instructions. The script will try to find Obsidian automatically. If it fails, it will ask you to provide the path.
+2.  Download the **`Source code (zip)`** file from the latest release.
+3.  **Extract the entire contents of the zip file** to a temporary folder on your computer (e.g., `C:\temp\ObsidianContextMenu`).
+4.  Navigate into the extracted folder.
+5.  **Right-click on `install_obsidian_context_menu.bat` and select "Run as administrator"**. This is necessary because modifying the Windows Registry requires elevated permissions.
+6.  Follow the on-screen instructions. The script will try to find Obsidian automatically. If it fails, it will ask you to provide the path.
 
 ### Uninstallation
 
