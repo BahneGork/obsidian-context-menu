@@ -68,7 +68,8 @@ FunctionEnd
 Function PromptForObsidianExe
   Loop_Prompt:
     ClearErrors
-    GetFileOpenDialog $R0 "Please select Obsidian.exe:" "$PROGRAMFILES\Obsidian\" "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
+    MessageBox MB_OK "Bypassing file selection for debug."
+    StrCpy $R0 "$PROGRAMFILES\Obsidian\Obsidian.exe" ; Dummy path for testing
 
     IfErrors +3
       ; User picked a file → $0 contains path
