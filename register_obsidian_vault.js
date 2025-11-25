@@ -74,19 +74,26 @@ function registerVault(vaultPath) {
 
         try {
             // Use ADODB.Stream to read UTF-8 without BOM
+            WScript.Echo("DEBUG: Attempting to read with ADODB.Stream");
             writeDebugLog("Attempting to read with ADODB.Stream");
             var stream = new ActiveXObject("ADODB.Stream");
+            WScript.Echo("DEBUG: Stream object created");
             stream.Type = 2; // adTypeText
             stream.Charset = "UTF-8";
+            WScript.Echo("DEBUG: Charset set to UTF-8");
             stream.Open();
+            WScript.Echo("DEBUG: Stream opened");
             writeDebugLog("Stream opened, loading file...");
             stream.LoadFromFile(obsidianJsonPath);
+            WScript.Echo("DEBUG: File loaded");
             writeDebugLog("File loaded, reading text...");
             var jsonText = stream.ReadText();
+            WScript.Echo("DEBUG: Text read, length: " + jsonText.length);
             stream.Close();
             writeDebugLog("Stream closed, parsing JSON...");
 
             data = JSON.parse(jsonText);
+            WScript.Echo("DEBUG: JSON parsed successfully");
             writeDebugLog("Successfully parsed obsidian.json");
 
             // Count existing vaults
