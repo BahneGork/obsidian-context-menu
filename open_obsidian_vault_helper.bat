@@ -3,8 +3,6 @@ setlocal enabledelayedexpansion
 
 :: Get the path to the folder that was clicked in Explorer
 set "TARGET_FOLDER=%~1"
-:: Get the name of the folder, which will be the vault name
-for %%F in ("%TARGET_FOLDER%") do set "VAULT_NAME=%%~nxF"
 
 :: Define the source directory for default Obsidian config files
 :: %~dp0 refers to the directory where this helper script itself is located.
@@ -26,10 +24,23 @@ if not exist "%TARGET_FOLDER%\.obsidian\" (
     echo .obsidian folder already exists in "%TARGET_FOLDER%". Skipping initialization.
 )
 
-:: Finally, open the vault in Obsidian
-:: URL-encode the VAULT_NAME to handle spaces and special characters
-for /f "usebackq delims=" %%A in (`powershell -Command "[uri]::EscapeDataString('!VAULT_NAME!')"`) do set "ENCODED_VAULT_NAME=%%A"
+:: Find Python executable
+set "PYTHON_EXE="
+for /f "delims=" %%p in ('where python.exe 2^>nul') do if not defined PYTHON_EXE set "PYTHON_EXE=%%p"
+if not defined PYTHON_EXE (
+    echo ERROR: Python executable not found. Please ensure Python is installed and in your PATH.
+    pause
+    goto :eof
+)
 
-start "" "obsidian://open?vault=!ENCODED_VAULT_NAME!"
+:: Call Python script to register the vault in obsidian.json
+echo Registering vault in Obsidian.json...
+"%PYTHON_EXE%" "%~dp0register_obsidian_vault.py" "!TARGET_FOLDER!"
+
+:: Finally, open the vault in Obsidian
+:: URL-encode the TARGET_FOLDER path to handle spaces and special characters
+for /f "usebackq delims=" %%A in (`powershell -Command "[uri]::EscapeDataString('!TARGET_FOLDER!')"`) do set "ENCODED_PATH=%%A"
+
+start "" "obsidian://open?path=!ENCODED_PATH!"
 
 endlocal

@@ -10,6 +10,7 @@ if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
 copy /Y "%~dp0install_obsidian_context_menu.bat" "%INSTALL_DIR%\" >nul
 copy /Y "%~dp0uninstall_obsidian_context_menu.bat" "%INSTALL_DIR%\" >nul
 copy /Y "%~dp0open_obsidian_vault_helper.bat" "%INSTALL_DIR%\" >nul
+copy /Y "%~dp0register_obsidian_vault.py" "%INSTALL_DIR%\" >nul
 xcopy /E /I /Y "%~dp0default_obsidian_config\" "%INSTALL_DIR%\default_obsidian_config\" >nul 2>&1
 
 :: Update HELPER_SCRIPT_PATH to point to the installed location
