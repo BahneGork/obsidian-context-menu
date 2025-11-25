@@ -25,32 +25,22 @@ if not exist "%TARGET_FOLDER%\.obsidian\" (
     echo .obsidian folder already exists in "%TARGET_FOLDER%". Skipping initialization.
 )
 
-:: Find Python executable
-set "PYTHON_EXE="
-for /f "delims=" %%p in ('where python.exe 2^>nul') do if not defined PYTHON_EXE set "PYTHON_EXE=%%p"
-if not defined PYTHON_EXE (
-    echo ERROR: Python executable not found. Please ensure Python is installed and in your PATH.
-    pause
-    goto :eof
-)
-
-:: Call Python script to register the vault in obsidian.json
+:: Call PowerShell script to register the vault in obsidian.json
 echo Registering vault in Obsidian.json...
 echo Debug log location: %TEMP%\obsidian_vault_register_debug.log
 echo.
 
 :: Set script path using the captured directory
-set "REGISTER_SCRIPT=!SCRIPT_DIR!register_obsidian_vault.py"
+set "REGISTER_SCRIPT=!SCRIPT_DIR!register_obsidian_vault.ps1"
 
 :: Debug: Show what we're about to run
-echo Python: !PYTHON_EXE!
 echo Script: !REGISTER_SCRIPT!
 echo Folder: !TARGET_FOLDER!
 echo.
 
-:: Run Python script and capture output
+:: Run PowerShell script and capture output
 set "TEMP_OUTPUT=%TEMP%\obsidian_register_output.txt"
-"!PYTHON_EXE!" "!REGISTER_SCRIPT!" "!TARGET_FOLDER!" > "!TEMP_OUTPUT!" 2>&1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "!REGISTER_SCRIPT!" -VaultPath "!TARGET_FOLDER!" > "!TEMP_OUTPUT!" 2>&1
 
 :: Display the output
 type "!TEMP_OUTPUT!"

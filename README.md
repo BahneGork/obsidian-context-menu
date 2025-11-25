@@ -17,9 +17,8 @@ A Windows utility that adds "Open as Obsidian Vault" to the context menu. Right-
 
 ### Prerequisites
 
-- **Windows 10 or Windows 11**
+- **Windows 10 or Windows 11** (PowerShell 5.1+ included by default)
 - **[Obsidian](https://obsidian.md/)** - Must be installed
-- **[Python 3](https://www.python.org/downloads/)** - Required for vault registration (must be in PATH)
 
 ### Installation (Recommended)
 
@@ -65,7 +64,7 @@ When you right-click a folder and select "Open as Obsidian Vault":
      - `workspace.json` - Workspace layout
 
 2. **Register Vault**
-   - Python script reads/updates `%APPDATA%\Roaming\Obsidian\obsidian.json`
+   - PowerShell script reads/updates `%APPDATA%\Roaming\Obsidian\obsidian.json`
    - Adds vault entry with unique ID and path
    - Timestamps the registration
 
@@ -77,8 +76,9 @@ When you right-click a folder and select "Open as Obsidian Vault":
 
 - **Registry Keys:** Context menu entries are added to `HKCU\Software\Classes\Directory\shell`
 - **Installation Path:** Files are installed to `%LOCALAPPDATA%\ObsidianContextMenu`
-- **Vault Registration:** Python handles JSON manipulation for reliable vault registration
+- **Vault Registration:** PowerShell handles JSON manipulation using native ConvertFrom-Json/ConvertTo-Json
 - **No Admin Required:** Uses per-user registry (HKCU) instead of system-wide (HKLM)
+- **No External Dependencies:** Uses only Windows built-in components (PowerShell 5.1+)
 
 ## Building from Source
 
@@ -104,18 +104,22 @@ To build the installer yourself:
 
 ## Troubleshooting
 
-### Python not found
-**Error:** `Python executable not found`
-
-**Solution:** Install Python 3 and ensure it's added to your PATH during installation, or add it manually.
-
 ### Vault not opening
 **Error:** `Vault not found` or Obsidian opens but shows vault picker
 
 **Solution:**
-- Ensure Python is installed and in PATH
 - Check debug log at `%TEMP%\obsidian_vault_register_debug.log`
 - Verify `obsidian.json` exists at `%APPDATA%\Roaming\Obsidian\obsidian.json`
+- Ensure PowerShell execution policy allows scripts (installer uses `-ExecutionPolicy Bypass`)
+
+### PowerShell errors
+**Error:** PowerShell script execution blocked
+
+**Solution:**
+The installer uses `-ExecutionPolicy Bypass` to avoid this, but if you encounter issues:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
 
 ### Context menu not appearing
 **Solution:**

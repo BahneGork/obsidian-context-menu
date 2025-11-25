@@ -144,7 +144,7 @@ Section "Install"
 
   File "install_obsidian_context_menu.bat"
   File "uninstall_obsidian_context_menu.bat"
-  File "register_obsidian_vault.py"
+  File "register_obsidian_vault.ps1"
 
   ; Create custom batch file with hardcoded installation path
   FileOpen $0 "$INSTDIR\open_obsidian_vault_helper.bat" w
@@ -172,32 +172,22 @@ Section "Install"
   FileWrite $0 '    echo .obsidian folder already exists in "%TARGET_FOLDER%". Skipping initialization.$\r$\n'
   FileWrite $0 ')$\r$\n'
   FileWrite $0 "$\r$\n"
-  FileWrite $0 ":: Find Python executable$\r$\n"
-  FileWrite $0 'set "PYTHON_EXE="$\r$\n'
-  FileWrite $0 "for /f $\"delims=$\" %%p in ('where python.exe 2^>nul') do if not defined PYTHON_EXE set $\"PYTHON_EXE=%%p$\"$\r$\n"
-  FileWrite $0 'if not defined PYTHON_EXE ($\r$\n'
-  FileWrite $0 '    echo ERROR: Python executable not found. Please ensure Python is installed and in your PATH.$\r$\n'
-  FileWrite $0 '    pause$\r$\n'
-  FileWrite $0 '    goto :eof$\r$\n'
-  FileWrite $0 ')$\r$\n'
-  FileWrite $0 "$\r$\n"
-  FileWrite $0 ":: Call Python script to register the vault in obsidian.json$\r$\n"
+  FileWrite $0 ":: Call PowerShell script to register the vault in obsidian.json$\r$\n"
   FileWrite $0 'echo Registering vault in Obsidian.json...$\r$\n'
   FileWrite $0 'echo Debug log location: %TEMP%\obsidian_vault_register_debug.log$\r$\n'
   FileWrite $0 'echo.$\r$\n'
   FileWrite $0 "$\r$\n"
   FileWrite $0 ":: Set script path using the captured directory$\r$\n"
-  FileWrite $0 'set "REGISTER_SCRIPT=!SCRIPT_DIR!register_obsidian_vault.py"$\r$\n'
+  FileWrite $0 'set "REGISTER_SCRIPT=!SCRIPT_DIR!register_obsidian_vault.ps1"$\r$\n'
   FileWrite $0 "$\r$\n"
   FileWrite $0 ":: Debug: Show what we're about to run$\r$\n"
-  FileWrite $0 'echo Python: !PYTHON_EXE!$\r$\n'
   FileWrite $0 'echo Script: !REGISTER_SCRIPT!$\r$\n'
   FileWrite $0 'echo Folder: !TARGET_FOLDER!$\r$\n'
   FileWrite $0 'echo.$\r$\n'
   FileWrite $0 "$\r$\n"
-  FileWrite $0 ":: Run Python script and capture output$\r$\n"
+  FileWrite $0 ":: Run PowerShell script and capture output$\r$\n"
   FileWrite $0 'set "TEMP_OUTPUT=%TEMP%\obsidian_register_output.txt"$\r$\n'
-  FileWrite $0 '"!PYTHON_EXE!" "!REGISTER_SCRIPT!" "!TARGET_FOLDER!" > "!TEMP_OUTPUT!" 2>&1$\r$\n'
+  FileWrite $0 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "!REGISTER_SCRIPT!" -VaultPath "!TARGET_FOLDER!" > "!TEMP_OUTPUT!" 2>&1$\r$\n'
   FileWrite $0 "$\r$\n"
   FileWrite $0 ":: Display the output$\r$\n"
   FileWrite $0 'type "!TEMP_OUTPUT!"$\r$\n'
