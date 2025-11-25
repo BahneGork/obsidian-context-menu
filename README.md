@@ -17,7 +17,7 @@ A Windows utility that adds "Open as Obsidian Vault" to the context menu. Right-
 
 ### Prerequisites
 
-- **Windows 10 or Windows 11** (PowerShell 5.1+ included by default)
+- **Windows 10 or Windows 11** (Windows Script Host included by default)
 - **[Obsidian](https://obsidian.md/)** - Must be installed
 
 ### Installation (Recommended)
@@ -64,9 +64,10 @@ When you right-click a folder and select "Open as Obsidian Vault":
      - `workspace.json` - Workspace layout
 
 2. **Register Vault**
-   - PowerShell script reads/updates `%APPDATA%\Roaming\Obsidian\obsidian.json`
+   - JScript (Windows Script Host) reads/updates `%APPDATA%\Roaming\Obsidian\obsidian.json`
    - Adds vault entry with unique ID and path
    - Timestamps the registration
+   - Creates automatic backup before modifications
 
 3. **Open in Obsidian**
    - Uses Obsidian URI scheme: `obsidian://open?vault=<vault-id>`
@@ -76,9 +77,10 @@ When you right-click a folder and select "Open as Obsidian Vault":
 
 - **Registry Keys:** Context menu entries are added to `HKCU\Software\Classes\Directory\shell`
 - **Installation Path:** Files are installed to `%LOCALAPPDATA%\ObsidianContextMenu`
-- **Vault Registration:** PowerShell handles JSON manipulation using native ConvertFrom-Json/ConvertTo-Json
+- **Vault Registration:** JScript handles JSON manipulation using native JSON.parse() and JSON.stringify()
+- **Encoding Safety:** Uses ADODB.Stream to write UTF-8 without BOM (prevents JSON corruption)
 - **No Admin Required:** Uses per-user registry (HKCU) instead of system-wide (HKLM)
-- **No External Dependencies:** Uses only Windows built-in components (PowerShell 5.1+)
+- **No External Dependencies:** Uses only Windows built-in components (Windows Script Host/cscript.exe)
 
 ## Building from Source
 
@@ -110,16 +112,16 @@ To build the installer yourself:
 **Solution:**
 - Check debug log at `%TEMP%\obsidian_vault_register_debug.log`
 - Verify `obsidian.json` exists at `%APPDATA%\Roaming\Obsidian\obsidian.json`
-- Ensure PowerShell execution policy allows scripts (installer uses `-ExecutionPolicy Bypass`)
+- Check that the JScript completed successfully (look for "VAULT_ID:" in output)
+- If `obsidian.json` was corrupted, restore from backup: `%APPDATA%\Roaming\Obsidian\obsidian.json.backup`
 
-### PowerShell errors
-**Error:** PowerShell script execution blocked
+### Script execution errors
+**Error:** Script fails to register vault
 
 **Solution:**
-The installer uses `-ExecutionPolicy Bypass` to avoid this, but if you encounter issues:
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
+- Windows Script Host (cscript.exe) should be available by default on all Windows 10/11 systems
+- Check if Windows Script Host is disabled in your organization's Group Policy
+- Review the debug log for specific error messages
 
 ### Context menu not appearing
 **Solution:**
