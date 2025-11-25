@@ -35,16 +35,34 @@ if not defined PYTHON_EXE (
 
 :: Call Python script to register the vault in obsidian.json
 echo Registering vault in Obsidian.json...
+echo Debug log location: %TEMP%\obsidian_vault_register_debug.log
+echo.
+
+:: Run Python script and capture output
+set "TEMP_OUTPUT=%TEMP%\obsidian_register_output.txt"
+"%PYTHON_EXE%" "%~dp0register_obsidian_vault.py" "!TARGET_FOLDER!" > "!TEMP_OUTPUT!" 2>&1
+
+:: Display the output
+type "!TEMP_OUTPUT!"
+echo.
+
+:: Extract VAULT_ID from output
 set "VAULT_ID="
-for /f "tokens=2 delims=:" %%i in ('"%PYTHON_EXE%" "%~dp0register_obsidian_vault.py" "!TARGET_FOLDER!" 2^>^&1 ^| findstr "VAULT_ID:"') do set "VAULT_ID=%%i"
+for /f "tokens=2 delims=:" %%i in ('type "!TEMP_OUTPUT!" ^| findstr "VAULT_ID:"') do set "VAULT_ID=%%i"
+
+:: Clean up temp file
+del "!TEMP_OUTPUT!" 2>nul
 
 if not defined VAULT_ID (
+    echo.
     echo ERROR: Failed to register vault or retrieve vault ID
+    echo Check debug log at: %TEMP%\obsidian_vault_register_debug.log
+    echo.
     pause
     goto :eof
 )
 
-echo Vault ID: !VAULT_ID!
+echo Opening vault with ID: !VAULT_ID!
 
 :: Finally, open the vault in Obsidian using the vault ID
 start "" "obsidian://open?vault=!VAULT_ID!"
