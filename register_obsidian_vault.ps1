@@ -143,11 +143,15 @@ function Register-Vault {
         throw "Vault count check failed"
     }
 
-    # Write to obsidian.json
+    # Write to obsidian.json (UTF-8 without BOM)
     try {
         $jsonOutput = $outputData | ConvertTo-Json -Depth 10 -Compress
-        $jsonOutput | Out-File -FilePath $obsidianJsonPath -Encoding UTF8 -Force -NoNewline
-        Write-DebugLog "Successfully wrote to obsidian.json"
+
+        # Use .NET to write UTF-8 without BOM (Out-File adds BOM which breaks JSON)
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        [System.IO.File]::WriteAllText($obsidianJsonPath, $jsonOutput, $utf8NoBom)
+
+        Write-DebugLog "Successfully wrote to obsidian.json (UTF-8 without BOM)"
         Write-DebugLog "Final vault count: $newVaultsCount"
     } catch {
         Write-DebugLog "ERROR writing to obsidian.json: $_"
