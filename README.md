@@ -2,6 +2,12 @@
 
 A Windows utility that adds "Open as Obsidian Vault" to the context menu. Right-click any folder to instantly open it as an Obsidian vault - even if it's not already configured as one!
 
+This was built using Gemini, ChatGPT and Claude code. Gemini laid the foundations, Chatgpt did some debugging fixing, Claude finished it and made an exe installer with everything included possible.
+
+It installs some bat files and a js file in appdata/local/obsidiancontextmenu and edits registry.  When you right click inside a folder or on a folder in file explorer you now have "open as obsidian vault" in your context menu and it will create a default .obsidian folder if that is not present and add the folderpath to obsidian.json in appdata/roaming/obsidian and finish by opening the folder as a vault in Obsidian. 
+
+You now have the power to turn any folder into an Obsidian vault directly from windows file explorer.
+
 ## Features
 
 - **Instant Vault Access:** Right-click any folder and open it directly in Obsidian
