@@ -28,6 +28,40 @@ function writeDebugLog(message) {
     }
 }
 
+// JSON parser for JScript (which doesn't have native JSON support)
+function parseJSON(jsonString) {
+    // Use eval with safety wrapper
+    return eval('(' + jsonString + ')');
+}
+
+function stringifyJSON(obj) {
+    // Simple JSON stringifier for JScript
+    if (obj === null) return 'null';
+    if (obj === undefined) return undefined;
+
+    var type = typeof obj;
+    if (type === 'number' || type === 'boolean') return '' + obj;
+    if (type === 'string') return '"' + obj.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+
+    if (obj instanceof Array || obj.length !== undefined) {
+        var arr = [];
+        for (var i = 0; i < obj.length; i++) {
+            arr.push(stringifyJSON(obj[i]));
+        }
+        return '[' + arr.join(',') + ']';
+    }
+
+    if (type === 'object') {
+        var properties = [];
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                properties.push(stringifyJSON(key) + ':' + stringifyJSON(obj[key]));
+            }
+        }
+        return '{' + properties.join(',') + '}';
+    }
+}
+
 function getObsidianJsonPath() {
     var appData = shell.ExpandEnvironmentStrings("%APPDATA%");
     return appData + "\\Obsidian\\obsidian.json";
@@ -74,26 +108,15 @@ function registerVault(vaultPath) {
 
         try {
             // Use ADODB.Stream to read UTF-8 without BOM
-            WScript.Echo("DEBUG: Attempting to read with ADODB.Stream");
-            writeDebugLog("Attempting to read with ADODB.Stream");
             var stream = new ActiveXObject("ADODB.Stream");
-            WScript.Echo("DEBUG: Stream object created");
             stream.Type = 2; // adTypeText
             stream.Charset = "UTF-8";
-            WScript.Echo("DEBUG: Charset set to UTF-8");
             stream.Open();
-            WScript.Echo("DEBUG: Stream opened");
-            writeDebugLog("Stream opened, loading file...");
             stream.LoadFromFile(obsidianJsonPath);
-            WScript.Echo("DEBUG: File loaded");
-            writeDebugLog("File loaded, reading text...");
             var jsonText = stream.ReadText();
-            WScript.Echo("DEBUG: Text read, length: " + jsonText.length);
             stream.Close();
-            writeDebugLog("Stream closed, parsing JSON...");
 
-            data = JSON.parse(jsonText);
-            WScript.Echo("DEBUG: JSON parsed successfully");
+            data = parseJSON(jsonText);
             writeDebugLog("Successfully parsed obsidian.json");
 
             // Count existing vaults
@@ -108,8 +131,6 @@ function registerVault(vaultPath) {
 
         } catch (e) {
             writeDebugLog("ERROR reading JSON: " + e.message);
-            writeDebugLog("ERROR number: " + e.number);
-            writeDebugLog("ERROR description: " + e.description);
             WScript.Echo("ERROR: Could not read existing obsidian.json");
             WScript.Quit(1);
         }
@@ -179,7 +200,7 @@ function registerVault(vaultPath) {
 
     // Write JSON (compact format, UTF-8 without BOM)
     try {
-        var jsonOutput = JSON.stringify(data);
+        var jsonOutput = stringifyJSON(data);
 
         // Use ADODB.Stream to write UTF-8 without BOM
         var stream = new ActiveXObject("ADODB.Stream");
