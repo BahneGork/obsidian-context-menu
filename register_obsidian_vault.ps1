@@ -44,86 +44,103 @@ function Register-Vault {
     Write-DebugLog "Normalized vault path: $vaultPathNormalized"
 
     # Read existing obsidian.json if it exists
-    $vaults = @{}
-    $dataObj = $null
+    $existingData = $null
+    $existingVaultsCount = 0
 
     if (Test-Path $obsidianJsonPath) {
         Write-DebugLog "Obsidian JSON exists, reading..."
         try {
+            # Create backup before modifying
+            $backupPath = "$obsidianJsonPath.backup"
+            Copy-Item $obsidianJsonPath $backupPath -Force
+            Write-DebugLog "Created backup at: $backupPath"
+
             $jsonContent = Get-Content -Path $obsidianJsonPath -Raw -Encoding UTF8
-            $dataObj = $jsonContent | ConvertFrom-Json
+            $existingData = $jsonContent | ConvertFrom-Json
             Write-DebugLog "Successfully read obsidian.json"
 
-            # Convert vaults PSCustomObject to hashtable
-            if ($dataObj.vaults) {
-                $dataObj.vaults.PSObject.Properties | ForEach-Object {
-                    $vaults[$_.Name] = @{
-                        path = $_.Value.path
-                        ts = $_.Value.ts
+            # Count existing vaults
+            if ($existingData.vaults) {
+                $existingVaultsCount = ($existingData.vaults.PSObject.Properties | Measure-Object).Count
+            }
+            Write-DebugLog "Existing vaults count: $existingVaultsCount"
+
+            # Check if vault already exists
+            if ($existingData.vaults) {
+                foreach ($prop in $existingData.vaults.PSObject.Properties) {
+                    $vaultId = $prop.Name
+                    $vaultInfo = $prop.Value
+                    $existingPath = ""
+
+                    if ($vaultInfo.path) {
+                        try {
+                            $existingPath = (Resolve-Path $vaultInfo.path -ErrorAction SilentlyContinue).Path
+                        } catch {
+                            $existingPath = $vaultInfo.path
+                        }
+                    }
+
+                    Write-DebugLog "Checking vault ${vaultId}: $existingPath"
+
+                    if ($existingPath -eq $vaultPathNormalized) {
+                        Write-DebugLog "Found existing vault with ID: $vaultId"
+                        Write-Host "VAULT_ID:$vaultId"
+                        return $vaultId
                     }
                 }
             }
         } catch {
-            Write-DebugLog "JSON decode error: $_"
-            Write-Host "Warning: Could not decode existing obsidian.json. Creating new one."
+            Write-DebugLog "ERROR reading JSON: $_"
+            Write-Host "ERROR: Could not read existing obsidian.json"
+            throw
         }
     } else {
         Write-DebugLog "Obsidian JSON does not exist, will create new one"
     }
 
-    Write-DebugLog "Existing vaults count: $($vaults.Count)"
-
-    # Check if vault already exists by path
-    foreach ($vaultId in $vaults.Keys) {
-        $vaultInfo = $vaults[$vaultId]
-        $existingPath = ""
-
-        if ($vaultInfo.path) {
-            try {
-                $existingPath = (Resolve-Path $vaultInfo.path -ErrorAction SilentlyContinue).Path
-            } catch {
-                $existingPath = $vaultInfo.path
-            }
-        }
-
-        Write-DebugLog "Checking vault ${vaultId}: $existingPath"
-
-        if ($existingPath -eq $vaultPathNormalized) {
-            Write-DebugLog "Found existing vault with ID: $vaultId"
-            Write-Host "VAULT_ID:$vaultId"
-            return $vaultId
-        }
-    }
-
-    # If not found, add it
+    # Generate new vault ID
     Write-DebugLog "Vault not found, creating new entry"
-
-    # Generate 16-character hex ID
     $guid = [System.Guid]::NewGuid().ToString("N")
     $newVaultId = $guid.Substring(0, 16)
     Write-DebugLog "Generated vault ID: $newVaultId"
 
-    # Add new vault
-    $vaults[$newVaultId] = @{
+    # Create new vault entry
+    $newVault = [PSCustomObject]@{
         path = $vaultPathNormalized
         ts = [int64](([datetime]::UtcNow - [datetime]'1970-01-01').TotalMilliseconds)
     }
-    Write-DebugLog "Added vault to vaults dictionary"
 
-    # Create output object for JSON
-    $outputData = [PSCustomObject]@{
-        vaults = [PSCustomObject]@{}
-        openSchemes = [PSCustomObject]@{
-            app = $true
+    # Build output - preserve existing data
+    if ($existingData) {
+        # Start with existing data
+        $outputData = $existingData
+
+        # Add new vault to existing vaults
+        if (-not $outputData.vaults) {
+            $outputData | Add-Member -MemberType NoteProperty -Name "vaults" -Value ([PSCustomObject]@{})
         }
+
+        $outputData.vaults | Add-Member -MemberType NoteProperty -Name $newVaultId -Value $newVault -Force
+
+    } else {
+        # Create new structure
+        $outputData = [PSCustomObject]@{
+            vaults = [PSCustomObject]@{}
+            openSchemes = [PSCustomObject]@{
+                app = $true
+            }
+        }
+        $outputData.vaults | Add-Member -MemberType NoteProperty -Name $newVaultId -Value $newVault
     }
 
-    # Add all vaults to output
-    foreach ($vaultId in $vaults.Keys) {
-        $outputData.vaults | Add-Member -MemberType NoteProperty -Name $vaultId -Value ([PSCustomObject]@{
-            path = $vaults[$vaultId].path
-            ts = $vaults[$vaultId].ts
-        })
+    # Verify vault count before writing
+    $newVaultsCount = ($outputData.vaults.PSObject.Properties | Measure-Object).Count
+    Write-DebugLog "Vaults after adding new: $newVaultsCount (was: $existingVaultsCount)"
+
+    if ($newVaultsCount -lt $existingVaultsCount) {
+        Write-DebugLog "ERROR: Vault count decreased! Aborting write."
+        Write-Host "ERROR: Would lose existing vaults. Aborting."
+        throw "Vault count check failed"
     }
 
     # Write to obsidian.json
@@ -131,6 +148,7 @@ function Register-Vault {
         $jsonOutput = $outputData | ConvertTo-Json -Depth 10
         $jsonOutput | Out-File -FilePath $obsidianJsonPath -Encoding UTF8 -Force
         Write-DebugLog "Successfully wrote to obsidian.json"
+        Write-DebugLog "Final vault count: $newVaultsCount"
     } catch {
         Write-DebugLog "ERROR writing to obsidian.json: $_"
         throw
