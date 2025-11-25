@@ -145,6 +145,7 @@ Section "Install"
   File "install_obsidian_context_menu.bat"
   File "uninstall_obsidian_context_menu.bat"
   File "open_obsidian_vault_helper.bat"
+  File "register_obsidian_vault.py"
 
   SetOutPath "$INSTDIR\default_obsidian_config"
   File "default_obsidian_config\app.json"
