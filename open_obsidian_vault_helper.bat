@@ -38,9 +38,18 @@ echo Registering vault in Obsidian.json...
 echo Debug log location: %TEMP%\obsidian_vault_register_debug.log
 echo.
 
+:: Set script path without delayed expansion to avoid quote issues
+set "REGISTER_SCRIPT=%~dp0register_obsidian_vault.py"
+
+:: Debug: Show what we're about to run
+echo Python: !PYTHON_EXE!
+echo Script: !REGISTER_SCRIPT!
+echo Folder: !TARGET_FOLDER!
+echo.
+
 :: Run Python script and capture output
 set "TEMP_OUTPUT=%TEMP%\obsidian_register_output.txt"
-"%PYTHON_EXE%" "%~dp0register_obsidian_vault.py" "!TARGET_FOLDER!" > "!TEMP_OUTPUT!" 2>&1
+"!PYTHON_EXE!" "!REGISTER_SCRIPT!" "!TARGET_FOLDER!" > "!TEMP_OUTPUT!" 2>&1
 
 :: Display the output
 type "!TEMP_OUTPUT!"
