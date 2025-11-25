@@ -107,14 +107,10 @@ function registerVault(vaultPath) {
         writeDebugLog("Created backup at: " + backupPath);
 
         try {
-            // Use ADODB.Stream to read UTF-8 without BOM
-            var stream = new ActiveXObject("ADODB.Stream");
-            stream.Type = 2; // adTypeText
-            stream.Charset = "UTF-8";
-            stream.Open();
-            stream.LoadFromFile(obsidianJsonPath);
-            var jsonText = stream.ReadText();
-            stream.Close();
+            // Use FSO to read as ASCII (matches how we write)
+            var file = fso.OpenTextFile(obsidianJsonPath, 1, false, 0); // ForReading, ASCII
+            var jsonText = file.ReadAll();
+            file.Close();
 
             data = parseJSON(jsonText);
             writeDebugLog("Successfully parsed obsidian.json");
@@ -202,16 +198,14 @@ function registerVault(vaultPath) {
     try {
         var jsonOutput = stringifyJSON(data);
 
-        // Use ADODB.Stream to write UTF-8 without BOM
-        var stream = new ActiveXObject("ADODB.Stream");
-        stream.Type = 2; // adTypeText
-        stream.Charset = "UTF-8";
-        stream.Open();
-        stream.WriteText(jsonOutput);
-        stream.SaveToFile(obsidianJsonPath, 2); // 2 = adSaveCreateOverWrite
-        stream.Close();
+        // Use FSO to write as ASCII (no BOM added)
+        // Note: This works because obsidian.json only contains ASCII characters
+        // (backslashes are escaped as \\ in JSON)
+        var textFile = fso.CreateTextFile(obsidianJsonPath, true, false); // overwrite=true, unicode=false
+        textFile.Write(jsonOutput);
+        textFile.Close();
 
-        writeDebugLog("Successfully wrote to obsidian.json (UTF-8 without BOM)");
+        writeDebugLog("Successfully wrote to obsidian.json (ASCII, no BOM)");
         writeDebugLog("Final vault count: " + newVaultsCount);
 
     } catch (e) {
