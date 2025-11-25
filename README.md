@@ -2,8 +2,6 @@
 
 A Windows utility that adds "Open as Obsidian Vault" to the context menu. Right-click any folder to instantly open it as an Obsidian vault - even if it's not already configured as one!
 
-![Context Menu Screenshot](Screenshot%202025-11-24%20150712.png)
-
 ## Features
 
 - **Instant Vault Access:** Right-click any folder and open it directly in Obsidian
