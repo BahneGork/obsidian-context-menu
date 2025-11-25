@@ -144,6 +144,7 @@ Section "Install"
 
   File "install_obsidian_context_menu.bat"
   File "uninstall_obsidian_context_menu.bat"
+  File "register_obsidian_vault.js"
 
   ; Create custom batch file with hardcoded installation path
   FileOpen $0 "$INSTDIR\open_obsidian_vault_helper.bat" w
@@ -171,18 +172,42 @@ Section "Install"
   FileWrite $0 '    echo .obsidian folder already exists in "%TARGET_FOLDER%". Skipping initialization.$\r$\n'
   FileWrite $0 ')$\r$\n'
   FileWrite $0 "$\r$\n"
-  FileWrite $0 ":: Open the vault in Obsidian using the path parameter$\r$\n"
-  FileWrite $0 ":: Obsidian will register it automatically on first open$\r$\n"
-  FileWrite $0 'echo Opening vault in Obsidian...$\r$\n'
-  FileWrite $0 "$\r$\n"
-  FileWrite $0 ":: URL-encode the path for use in URI$\r$\n"
-  FileWrite $0 "for /f $\"usebackq delims=$\" %%A in (`powershell -Command $\"[uri]::EscapeDataString('!TARGET_FOLDER!')$\"`) do set $\"ENCODED_PATH=%%A$\"$\r$\n"
-  FileWrite $0 "$\r$\n"
-  FileWrite $0 ":: Open using path - Obsidian will register it automatically$\r$\n"
-  FileWrite $0 'start "" "obsidian://open?path=!ENCODED_PATH!"$\r$\n'
-  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Call JScript to register the vault in obsidian.json$\r$\n"
+  FileWrite $0 'echo Registering vault in Obsidian.json...$\r$\n'
+  FileWrite $0 'echo Debug log location: %TEMP%\obsidian_vault_register_debug.log$\r$\n'
   FileWrite $0 'echo.$\r$\n'
-  FileWrite $0 'echo Vault opened! Obsidian will register it automatically on first access.$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Set script path$\r$\n"
+  FileWrite $0 'set "REGISTER_SCRIPT=!SCRIPT_DIR!register_obsidian_vault.js"$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Run JScript and capture output$\r$\n"
+  FileWrite $0 'set "TEMP_OUTPUT=%TEMP%\obsidian_register_output.txt"$\r$\n'
+  FileWrite $0 'cscript.exe //NoLogo "!REGISTER_SCRIPT!" "!TARGET_FOLDER!" > "!TEMP_OUTPUT!" 2>&1$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Display the output$\r$\n"
+  FileWrite $0 'type "!TEMP_OUTPUT!"$\r$\n'
+  FileWrite $0 'echo.$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Extract VAULT_ID from output$\r$\n"
+  FileWrite $0 'set "VAULT_ID="$\r$\n'
+  FileWrite $0 "for /f $\"tokens=2 delims=:$\" %%i in ('type $\"!TEMP_OUTPUT!$\" ^| findstr $\"VAULT_ID:$\"') do set $\"VAULT_ID=%%i$\"$\r$\n"
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Clean up temp file$\r$\n"
+  FileWrite $0 'del "!TEMP_OUTPUT!" 2>nul$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 'if not defined VAULT_ID ($\r$\n'
+  FileWrite $0 '    echo.$\r$\n'
+  FileWrite $0 '    echo ERROR: Failed to register vault or retrieve vault ID$\r$\n'
+  FileWrite $0 '    echo Check debug log at: %TEMP%\obsidian_vault_register_debug.log$\r$\n'
+  FileWrite $0 '    echo.$\r$\n'
+  FileWrite $0 '    pause$\r$\n'
+  FileWrite $0 '    goto :eof$\r$\n'
+  FileWrite $0 ')$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 'echo Opening vault with ID: !VAULT_ID!$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Finally, open the vault in Obsidian using the vault ID$\r$\n"
+  FileWrite $0 'start "" "obsidian://open?vault=!VAULT_ID!"$\r$\n'
   FileWrite $0 "$\r$\n"
   FileWrite $0 "endlocal$\r$\n"
   FileClose $0
