@@ -43,43 +43,49 @@ function Register-Vault {
     $vaultPathNormalized = (Resolve-Path $VaultPath).Path
     Write-DebugLog "Normalized vault path: $vaultPathNormalized"
 
-    # Initialize data structure
-    $data = @{
-        vaults = @{}
-        openSchemes = @{ app = $true }
-    }
-
     # Read existing obsidian.json if it exists
+    $vaults = @{}
+    $dataObj = $null
+
     if (Test-Path $obsidianJsonPath) {
         Write-DebugLog "Obsidian JSON exists, reading..."
         try {
             $jsonContent = Get-Content -Path $obsidianJsonPath -Raw -Encoding UTF8
-            $data = $jsonContent | ConvertFrom-Json -AsHashtable
+            $dataObj = $jsonContent | ConvertFrom-Json
             Write-DebugLog "Successfully read obsidian.json"
+
+            # Convert vaults PSCustomObject to hashtable
+            if ($dataObj.vaults) {
+                $dataObj.vaults.PSObject.Properties | ForEach-Object {
+                    $vaults[$_.Name] = @{
+                        path = $_.Value.path
+                        ts = $_.Value.ts
+                    }
+                }
+            }
         } catch {
             Write-DebugLog "JSON decode error: $_"
             Write-Host "Warning: Could not decode existing obsidian.json. Creating new one."
-            $data = @{
-                vaults = @{}
-                openSchemes = @{ app = $true }
-            }
         }
     } else {
         Write-DebugLog "Obsidian JSON does not exist, will create new one"
     }
 
-    # Ensure vaults property exists
-    if (-not $data.vaults) {
-        $data.vaults = @{}
-    }
-
-    $vaults = $data.vaults
     Write-DebugLog "Existing vaults count: $($vaults.Count)"
 
     # Check if vault already exists by path
     foreach ($vaultId in $vaults.Keys) {
         $vaultInfo = $vaults[$vaultId]
-        $existingPath = (Resolve-Path $vaultInfo.path -ErrorAction SilentlyContinue).Path
+        $existingPath = ""
+
+        if ($vaultInfo.path) {
+            try {
+                $existingPath = (Resolve-Path $vaultInfo.path -ErrorAction SilentlyContinue).Path
+            } catch {
+                $existingPath = $vaultInfo.path
+            }
+        }
+
         Write-DebugLog "Checking vault ${vaultId}: $existingPath"
 
         if ($existingPath -eq $vaultPathNormalized) {
@@ -98,15 +104,31 @@ function Register-Vault {
     Write-DebugLog "Generated vault ID: $newVaultId"
 
     # Add new vault
-    $data.vaults[$newVaultId] = @{
+    $vaults[$newVaultId] = @{
         path = $vaultPathNormalized
-        ts = [int64](Get-Date -UFormat %s) * 1000
+        ts = [int64](([datetime]::UtcNow - [datetime]'1970-01-01').TotalMilliseconds)
     }
     Write-DebugLog "Added vault to vaults dictionary"
 
+    # Create output object for JSON
+    $outputData = [PSCustomObject]@{
+        vaults = [PSCustomObject]@{}
+        openSchemes = [PSCustomObject]@{
+            app = $true
+        }
+    }
+
+    # Add all vaults to output
+    foreach ($vaultId in $vaults.Keys) {
+        $outputData.vaults | Add-Member -MemberType NoteProperty -Name $vaultId -Value ([PSCustomObject]@{
+            path = $vaults[$vaultId].path
+            ts = $vaults[$vaultId].ts
+        })
+    }
+
     # Write to obsidian.json
     try {
-        $jsonOutput = $data | ConvertTo-Json -Depth 10
+        $jsonOutput = $outputData | ConvertTo-Json -Depth 10
         $jsonOutput | Out-File -FilePath $obsidianJsonPath -Encoding UTF8 -Force
         Write-DebugLog "Successfully wrote to obsidian.json"
     } catch {
