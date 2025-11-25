@@ -73,9 +73,14 @@ function registerVault(vaultPath) {
         writeDebugLog("Created backup at: " + backupPath);
 
         try {
-            var file = fso.OpenTextFile(obsidianJsonPath, 1); // 1 = ForReading
-            var jsonText = file.ReadAll();
-            file.Close();
+            // Use ADODB.Stream to read UTF-8 without BOM
+            var stream = new ActiveXObject("ADODB.Stream");
+            stream.Type = 2; // adTypeText
+            stream.Charset = "UTF-8";
+            stream.Open();
+            stream.LoadFromFile(obsidianJsonPath);
+            var jsonText = stream.ReadText();
+            stream.Close();
 
             data = JSON.parse(jsonText);
             writeDebugLog("Successfully parsed obsidian.json");
