@@ -41,8 +41,27 @@ Function .onInit
 FunctionEnd
 
 Function FindObsidianExe
-  MessageBox MB_OK "FindObsidianExe called."
-  StrCpy $OBSIDIAN_EXE_PATH "$PROGRAMFILES\Obsidian\Obsidian.exe"
+  StrCpy $OBSIDIAN_EXE_PATH ""
+  StrCpy $OBSIDIAN_EXE_FOLDER ""
+
+  ; 1. Check LOCALAPPDATA
+  StrCpy $0 "$LOCALAPPDATA\Obsidian\Obsidian.exe"
+  IfFileExists "$0" 0 FindObsidianExe_CheckProgramFiles
+    StrCpy $OBSIDIAN_EXE_PATH $0
+    ${GetParent} "$OBSIDIAN_EXE_PATH" $OBSIDIAN_EXE_FOLDER
+    Return
+
+  FindObsidianExe_CheckProgramFiles:
+  ; 2. Check Program Files
+  StrCpy $0 "$PROGRAMFILES\Obsidian\Obsidian.exe"
+  IfFileExists "$0" 0 FindObsidianExe_NotFound
+    StrCpy $OBSIDIAN_EXE_PATH $0
+    ${GetParent} "$OBSIDIAN_EXE_PATH" $OBSIDIAN_EXE_FOLDER
+    Return
+
+  FindObsidianExe_NotFound:
+  ; 3. Path will be empty, custom page will prompt user
+  StrCpy $OBSIDIAN_EXE_PATH ""
   Return
 FunctionEnd
 
