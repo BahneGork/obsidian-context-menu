@@ -40,8 +40,8 @@ def register_vault(vault_path):
     # Check if the vault already exists by path
     for vault_id, vault_info in vaults.items():
         if os.path.abspath(vault_info.get("path", "")) == vault_path_normalized:
-            print(f"Vault already registered: {vault_path_normalized}")
-            return
+            print(f"VAULT_ID:{vault_id}")
+            return vault_id
             
     # If not found, add it
     new_vault_id = uuid.uuid4().hex
@@ -56,10 +56,11 @@ def register_vault(vault_path):
     }
     
     data["vaults"] = vaults
-    
+
     with open(obsidian_json_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2)
-    print(f"Vault registered: {vault_path_normalized}")
+    print(f"VAULT_ID:{new_vault_id}")
+    return new_vault_id
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

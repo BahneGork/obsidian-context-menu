@@ -35,12 +35,18 @@ if not defined PYTHON_EXE (
 
 :: Call Python script to register the vault in obsidian.json
 echo Registering vault in Obsidian.json...
-"%PYTHON_EXE%" "%~dp0register_obsidian_vault.py" "!TARGET_FOLDER!"
+set "VAULT_ID="
+for /f "tokens=2 delims=:" %%i in ('"%PYTHON_EXE%" "%~dp0register_obsidian_vault.py" "!TARGET_FOLDER!" 2^>^&1 ^| findstr "VAULT_ID:"') do set "VAULT_ID=%%i"
 
-:: Finally, open the vault in Obsidian
-:: URL-encode the TARGET_FOLDER path to handle spaces and special characters
-for /f "usebackq delims=" %%A in (`powershell -Command "[uri]::EscapeDataString('!TARGET_FOLDER!')"`) do set "ENCODED_PATH=%%A"
+if not defined VAULT_ID (
+    echo ERROR: Failed to register vault or retrieve vault ID
+    pause
+    goto :eof
+)
 
-start "" "obsidian://open?path=!ENCODED_PATH!"
+echo Vault ID: !VAULT_ID!
+
+:: Finally, open the vault in Obsidian using the vault ID
+start "" "obsidian://open?vault=!VAULT_ID!"
 
 endlocal
