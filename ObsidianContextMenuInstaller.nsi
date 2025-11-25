@@ -147,7 +147,7 @@ Section "Install"
   StrCpy $0 "Open as Obsidian Vault"
   StrCpy $1 'cmd.exe /c """$INSTDIR\open_obsidian_vault_helper.bat"" "%1""'
   StrCpy $2 'cmd.exe /c """$INSTDIR\open_obsidian_vault_helper.bat"" "%V""'
-  StrCpy $3 "$OBSIDIAN_EXE_PATH"
+  StrCpy $3 '"$OBSIDIAN_EXE_PATH"'
 
   ; Context menu: Directory
   WriteRegStr HKCU "Software\Classes\Directory\shell\ObsidianContextMenu" "" "$0"
