@@ -144,8 +144,88 @@ Section "Install"
 
   File "install_obsidian_context_menu.bat"
   File "uninstall_obsidian_context_menu.bat"
-  File "open_obsidian_vault_helper.bat"
   File "register_obsidian_vault.py"
+
+  ; Create custom batch file with hardcoded installation path
+  FileOpen $0 "$INSTDIR\open_obsidian_vault_helper.bat" w
+  FileWrite $0 "@echo off$\r$\n"
+  FileWrite $0 ":: Installation directory (set at install time)$\r$\n"
+  FileWrite $0 'set "SCRIPT_DIR=$INSTDIR\"$\r$\n'
+  FileWrite $0 "setlocal enabledelayedexpansion$\r$\n"
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Get the path to the folder that was clicked in Explorer$\r$\n"
+  FileWrite $0 'set "TARGET_FOLDER=%~1"$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Define the source directory for default Obsidian config files$\r$\n"
+  FileWrite $0 'set "DEFAULT_CONFIG_SOURCE=!SCRIPT_DIR!default_obsidian_config"$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Check if the .obsidian folder already exists in the target folder$\r$\n"
+  FileWrite $0 'if not exist "%TARGET_FOLDER%\.obsidian\" ($\r$\n'
+  FileWrite $0 '    echo Initializing new Obsidian vault in "%TARGET_FOLDER%"...$\r$\n'
+  FileWrite $0 '    mkdir "%TARGET_FOLDER%\.obsidian\"$\r$\n'
+  FileWrite $0 '    if exist "%DEFAULT_CONFIG_SOURCE%\app.json" copy /Y "%DEFAULT_CONFIG_SOURCE%\app.json" "%TARGET_FOLDER%\.obsidian\" >nul$\r$\n'
+  FileWrite $0 '    if exist "%DEFAULT_CONFIG_SOURCE%\appearance.json" copy /Y "%DEFAULT_CONFIG_SOURCE%\appearance.json" "%TARGET_FOLDER%\.obsidian\" >nul$\r$\n'
+  FileWrite $0 '    if exist "%DEFAULT_CONFIG_SOURCE%\core-plugins.json" copy /Y "%DEFAULT_CONFIG_SOURCE%\core-plugins.json" "%TARGET_FOLDER%\.obsidian\" >nul$\r$\n'
+  FileWrite $0 '    if exist "%DEFAULT_CONFIG_SOURCE%\workspace.json" copy /Y "%DEFAULT_CONFIG_SOURCE%\workspace.json" "%TARGET_FOLDER%\.obsidian\" >nul$\r$\n'
+  FileWrite $0 '    echo Default Obsidian config files copied.$\r$\n'
+  FileWrite $0 ') else ($\r$\n'
+  FileWrite $0 '    echo .obsidian folder already exists in "%TARGET_FOLDER%". Skipping initialization.$\r$\n'
+  FileWrite $0 ')$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Find Python executable$\r$\n"
+  FileWrite $0 'set "PYTHON_EXE="$\r$\n'
+  FileWrite $0 "for /f $\"delims=$\" %%p in ('where python.exe 2^>nul') do if not defined PYTHON_EXE set $\"PYTHON_EXE=%%p$\"$\r$\n"
+  FileWrite $0 'if not defined PYTHON_EXE ($\r$\n'
+  FileWrite $0 '    echo ERROR: Python executable not found. Please ensure Python is installed and in your PATH.$\r$\n'
+  FileWrite $0 '    pause$\r$\n'
+  FileWrite $0 '    goto :eof$\r$\n'
+  FileWrite $0 ')$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Call Python script to register the vault in obsidian.json$\r$\n"
+  FileWrite $0 'echo Registering vault in Obsidian.json...$\r$\n'
+  FileWrite $0 'echo Debug log location: %TEMP%\obsidian_vault_register_debug.log$\r$\n'
+  FileWrite $0 'echo.$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Set script path using the captured directory$\r$\n"
+  FileWrite $0 'set "REGISTER_SCRIPT=!SCRIPT_DIR!register_obsidian_vault.py"$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Debug: Show what we're about to run$\r$\n"
+  FileWrite $0 'echo Python: !PYTHON_EXE!$\r$\n'
+  FileWrite $0 'echo Script: !REGISTER_SCRIPT!$\r$\n'
+  FileWrite $0 'echo Folder: !TARGET_FOLDER!$\r$\n'
+  FileWrite $0 'echo.$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Run Python script and capture output$\r$\n"
+  FileWrite $0 'set "TEMP_OUTPUT=%TEMP%\obsidian_register_output.txt"$\r$\n'
+  FileWrite $0 '"!PYTHON_EXE!" "!REGISTER_SCRIPT!" "!TARGET_FOLDER!" > "!TEMP_OUTPUT!" 2>&1$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Display the output$\r$\n"
+  FileWrite $0 'type "!TEMP_OUTPUT!"$\r$\n'
+  FileWrite $0 'echo.$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Extract VAULT_ID from output$\r$\n"
+  FileWrite $0 'set "VAULT_ID="$\r$\n'
+  FileWrite $0 "for /f $\"tokens=2 delims=:$\" %%i in ('type $\"!TEMP_OUTPUT!$\" ^| findstr $\"VAULT_ID:$\"') do set $\"VAULT_ID=%%i$\"$\r$\n"
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Clean up temp file$\r$\n"
+  FileWrite $0 'del "!TEMP_OUTPUT!" 2>nul$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 'if not defined VAULT_ID ($\r$\n'
+  FileWrite $0 '    echo.$\r$\n'
+  FileWrite $0 '    echo ERROR: Failed to register vault or retrieve vault ID$\r$\n'
+  FileWrite $0 '    echo Check debug log at: %TEMP%\obsidian_vault_register_debug.log$\r$\n'
+  FileWrite $0 '    echo.$\r$\n'
+  FileWrite $0 '    pause$\r$\n'
+  FileWrite $0 '    goto :eof$\r$\n'
+  FileWrite $0 ')$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 'echo Opening vault with ID: !VAULT_ID!$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Finally, open the vault in Obsidian using the vault ID$\r$\n"
+  FileWrite $0 'start "" "obsidian://open?vault=!VAULT_ID!"$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 "endlocal$\r$\n"
+  FileClose $0
 
   SetOutPath "$INSTDIR\default_obsidian_config"
   File "default_obsidian_config\app.json"
