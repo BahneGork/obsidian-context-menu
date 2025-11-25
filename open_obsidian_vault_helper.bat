@@ -1,12 +1,13 @@
 @echo off
+:: Capture script directory BEFORE enabling delayed expansion
+set "SCRIPT_DIR=%~dp0"
 setlocal enabledelayedexpansion
 
 :: Get the path to the folder that was clicked in Explorer
 set "TARGET_FOLDER=%~1"
 
 :: Define the source directory for default Obsidian config files
-:: %~dp0 refers to the directory where this helper script itself is located.
-set "DEFAULT_CONFIG_SOURCE=%~dp0default_obsidian_config"
+set "DEFAULT_CONFIG_SOURCE=!SCRIPT_DIR!default_obsidian_config"
 
 :: Check if the .obsidian folder already exists in the target folder
 if not exist "%TARGET_FOLDER%\.obsidian\" (
@@ -38,8 +39,8 @@ echo Registering vault in Obsidian.json...
 echo Debug log location: %TEMP%\obsidian_vault_register_debug.log
 echo.
 
-:: Set script path without delayed expansion to avoid quote issues
-set "REGISTER_SCRIPT=%~dp0register_obsidian_vault.py"
+:: Set script path using the captured directory
+set "REGISTER_SCRIPT=!SCRIPT_DIR!register_obsidian_vault.py"
 
 :: Debug: Show what we're about to run
 echo Python: !PYTHON_EXE!
