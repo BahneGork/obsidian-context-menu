@@ -77,8 +77,8 @@ When you right-click a folder and select "Open as Obsidian Vault":
 
 - **Registry Keys:** Context menu entries are added to `HKCU\Software\Classes\Directory\shell`
 - **Installation Path:** Files are installed to `%LOCALAPPDATA%\ObsidianContextMenu`
-- **Vault Registration:** JScript handles JSON manipulation using native JSON.parse() and JSON.stringify()
-- **Encoding Safety:** Uses ADODB.Stream to write UTF-8 without BOM (prevents JSON corruption)
+- **Vault Registration:** JScript handles JSON manipulation using custom parseJSON() and stringifyJSON() functions
+- **Encoding Safety:** Uses FileSystemObject (FSO) to write ASCII without BOM (prevents JSON corruption)
 - **No Admin Required:** Uses per-user registry (HKCU) instead of system-wide (HKLM)
 - **No External Dependencies:** Uses only Windows built-in components (Windows Script Host/cscript.exe)
 
