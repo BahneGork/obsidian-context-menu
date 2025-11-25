@@ -145,8 +145,8 @@ function Register-Vault {
 
     # Write to obsidian.json
     try {
-        $jsonOutput = $outputData | ConvertTo-Json -Depth 10
-        $jsonOutput | Out-File -FilePath $obsidianJsonPath -Encoding UTF8 -Force
+        $jsonOutput = $outputData | ConvertTo-Json -Depth 10 -Compress
+        $jsonOutput | Out-File -FilePath $obsidianJsonPath -Encoding UTF8 -Force -NoNewline
         Write-DebugLog "Successfully wrote to obsidian.json"
         Write-DebugLog "Final vault count: $newVaultsCount"
     } catch {
