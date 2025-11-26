@@ -19,6 +19,8 @@ You now have the power to turn any folder into an Obsidian vault directly from w
 - **Easy Installation:** NSIS installer with automatic Obsidian detection
 - **Clean Uninstall:** Removes all registry entries and installed files
 
+![Context Menu Screenshot](Screenshot-1-context-menu.png)
+
 ## Getting Started
 
 ### Prerequisites

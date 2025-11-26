@@ -10,4 +10,4 @@ $RECYCLE.BIN/
 # Other
 *.log
 .DS_Store
-Screenshot*.png
+# Screenshot*.png - Allowing screenshots for documentation
