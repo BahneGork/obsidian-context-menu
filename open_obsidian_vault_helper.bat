@@ -61,8 +61,6 @@ if not defined VAULT_ID (
     goto :eof
 )
 
-echo Opening vault with ID: !VAULT_ID!
-
 :: If this is a NEW vault, close Obsidian first so it reloads obsidian.json
 set "OPEN_VAULTS="
 if "!VAULT_STATUS!"=="NEW" (
@@ -90,31 +88,38 @@ if exist "%LOCALAPPDATA%\Obsidian\Obsidian.exe" (
 )
 
 :: Open vault in Obsidian (will open new window if already running)
-echo Opening vault in new window...
 if defined OBSIDIAN_EXE (
-    start "Obsidian" "!OBSIDIAN_EXE!" "obsidian://open?vault=!VAULT_ID!"
+    start "" "!OBSIDIAN_EXE!" "obsidian://open?vault=!VAULT_ID!"
 ) else (
-    :: Fallback to protocol handler
     start "" "obsidian://open?vault=!VAULT_ID!"
 )
 
-:: If we closed Obsidian and had open vaults, reopen them
+:: If we closed Obsidian and had open vaults, create background script to reopen them
 if defined OPEN_VAULTS (
-    echo Reopening previously open vaults...
-    timeout /T 3 /NOBREAK >NUL
+    :: Create temporary script to handle delayed vault reopening
+    set "REOPEN_SCRIPT=%TEMP%\reopen_vaults_!VAULT_ID!.bat"
 
-    :: Replace commas with spaces for iteration
+    echo @echo off > "!REOPEN_SCRIPT!"
+    echo timeout /T 3 /NOBREAK ^>NUL >> "!REOPEN_SCRIPT!"
+
+    :: Replace commas with spaces
     set "VAULT_LIST=!OPEN_VAULTS:,= !"
 
-    :: Parse vault IDs and open each one
+    :: Add vault open commands
     for %%v in (!VAULT_LIST!) do (
         if defined OBSIDIAN_EXE (
-            start "Obsidian" "!OBSIDIAN_EXE!" "obsidian://open?vault=%%v"
+            echo start "" "!OBSIDIAN_EXE!" "obsidian://open?vault=%%v" >> "!REOPEN_SCRIPT!"
         ) else (
-            start "" "obsidian://open?vault=%%v"
+            echo start "" "obsidian://open?vault=%%v" >> "!REOPEN_SCRIPT!"
         )
-        timeout /T 1 /NOBREAK >NUL
+        echo timeout /T 1 /NOBREAK ^>NUL >> "!REOPEN_SCRIPT!"
     )
+
+    :: Script deletes itself when done
+    echo del "%%~f0" >> "!REOPEN_SCRIPT!"
+
+    :: Start background script and exit immediately
+    start "" cmd /c "!REOPEN_SCRIPT!"
 )
 
 endlocal
