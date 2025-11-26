@@ -219,7 +219,7 @@ Section "Install"
   FileWrite $0 ":: Open vault in Obsidian (will open new window if already running)$\r$\n"
   FileWrite $0 'echo Opening vault in new window...$\r$\n'
   FileWrite $0 'if defined OBSIDIAN_EXE ($\r$\n'
-  FileWrite $0 '    start "" "!OBSIDIAN_EXE!" "obsidian://open?vault=!VAULT_ID!"$\r$\n'
+  FileWrite $0 '    start "Obsidian" "!OBSIDIAN_EXE!" "obsidian://open?vault=!VAULT_ID!"$\r$\n'
   FileWrite $0 ') else ($\r$\n'
   FileWrite $0 '    :: Fallback to protocol handler$\r$\n'
   FileWrite $0 '    start "" "obsidian://open?vault=!VAULT_ID!"$\r$\n'

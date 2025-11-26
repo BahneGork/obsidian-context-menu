@@ -72,7 +72,7 @@ if exist "%LOCALAPPDATA%\Obsidian\Obsidian.exe" (
 :: Open vault in Obsidian (will open new window if already running)
 echo Opening vault in new window...
 if defined OBSIDIAN_EXE (
-    start "" "!OBSIDIAN_EXE!" "obsidian://open?vault=!VAULT_ID!"
+    start "Obsidian" "!OBSIDIAN_EXE!" "obsidian://open?vault=!VAULT_ID!"
 ) else (
     :: Fallback to protocol handler
     start "" "obsidian://open?vault=!VAULT_ID!"
