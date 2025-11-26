@@ -59,7 +59,23 @@ if not defined VAULT_ID (
 
 echo Opening vault with ID: !VAULT_ID!
 
-:: Finally, open the vault in Obsidian using the vault ID
-start "" "obsidian://open?vault=!VAULT_ID!"
+:: Find Obsidian installation
+set "OBSIDIAN_EXE="
+if exist "%LOCALAPPDATA%\Obsidian\Obsidian.exe" (
+    set "OBSIDIAN_EXE=%LOCALAPPDATA%\Obsidian\Obsidian.exe"
+) else if exist "%PROGRAMFILES%\Obsidian\Obsidian.exe" (
+    set "OBSIDIAN_EXE=%PROGRAMFILES%\Obsidian\Obsidian.exe"
+) else if exist "%PROGRAMFILES(X86)%\Obsidian\Obsidian.exe" (
+    set "OBSIDIAN_EXE=%PROGRAMFILES(X86)%\Obsidian\Obsidian.exe"
+)
+
+:: Open vault in Obsidian (will open new window if already running)
+echo Opening vault in new window...
+if defined OBSIDIAN_EXE (
+    start "" "!OBSIDIAN_EXE!" "obsidian://open?vault=!VAULT_ID!"
+) else (
+    :: Fallback to protocol handler
+    start "" "obsidian://open?vault=!VAULT_ID!"
+)
 
 endlocal
