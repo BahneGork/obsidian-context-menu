@@ -188,9 +188,13 @@ Section "Install"
   FileWrite $0 'type "!TEMP_OUTPUT!"$\r$\n'
   FileWrite $0 'echo.$\r$\n'
   FileWrite $0 "$\r$\n"
-  FileWrite $0 ":: Extract VAULT_ID from output$\r$\n"
+  FileWrite $0 ":: Extract VAULT_ID and status from output (format: VAULT_ID:xxx:NEW or VAULT_ID:xxx:EXISTING)$\r$\n"
   FileWrite $0 'set "VAULT_ID="$\r$\n'
-  FileWrite $0 "for /f $\"tokens=2 delims=:$\" %%i in ('type $\"!TEMP_OUTPUT!$\" ^| findstr $\"VAULT_ID:$\"') do set $\"VAULT_ID=%%i$\"$\r$\n"
+  FileWrite $0 'set "VAULT_STATUS="$\r$\n'
+  FileWrite $0 "for /f $\"tokens=2,3 delims=:$\" %%i in ('type $\"!TEMP_OUTPUT!$\" ^| findstr $\"VAULT_ID:$\"') do ($\r$\n"
+  FileWrite $0 '    set "VAULT_ID=%%i"$\r$\n'
+  FileWrite $0 '    set "VAULT_STATUS=%%j"$\r$\n'
+  FileWrite $0 ')$\r$\n'
   FileWrite $0 "$\r$\n"
   FileWrite $0 ":: Clean up temp file$\r$\n"
   FileWrite $0 'del "!TEMP_OUTPUT!" 2>nul$\r$\n'
@@ -205,6 +209,16 @@ Section "Install"
   FileWrite $0 ')$\r$\n'
   FileWrite $0 "$\r$\n"
   FileWrite $0 'echo Opening vault with ID: !VAULT_ID!$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: If this is a NEW vault, close Obsidian first so it reloads obsidian.json$\r$\n"
+  FileWrite $0 'if "!VAULT_STATUS!"=="NEW" ($\r$\n'
+  FileWrite $0 '    echo New vault detected - closing Obsidian to reload vault list...$\r$\n'
+  FileWrite $0 '    tasklist /FI "IMAGENAME eq Obsidian.exe" 2>NUL | find /I /N "Obsidian.exe">NUL$\r$\n'
+  FileWrite $0 '    if !ERRORLEVEL!==0 ($\r$\n'
+  FileWrite $0 '        taskkill /IM Obsidian.exe /F >NUL 2>&1$\r$\n'
+  FileWrite $0 '        timeout /T 2 /NOBREAK >NUL$\r$\n'
+  FileWrite $0 '    )$\r$\n'
+  FileWrite $0 ')$\r$\n'
   FileWrite $0 "$\r$\n"
   FileWrite $0 ":: Find Obsidian installation$\r$\n"
   FileWrite $0 'set "OBSIDIAN_EXE="$\r$\n'

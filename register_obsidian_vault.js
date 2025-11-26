@@ -160,7 +160,7 @@ function registerVault(vaultPath) {
 
             if (existingPath.toLowerCase() === vaultPathNormalized.toLowerCase()) {
                 writeDebugLog("Found existing vault with ID: " + vaultId);
-                WScript.Echo("VAULT_ID:" + vaultId);
+                WScript.Echo("VAULT_ID:" + vaultId + ":EXISTING");
                 WScript.Quit(0);
             }
         }
@@ -214,7 +214,7 @@ function registerVault(vaultPath) {
         WScript.Quit(1);
     }
 
-    WScript.Echo("VAULT_ID:" + newVaultId);
+    WScript.Echo("VAULT_ID:" + newVaultId + ":NEW");
     writeDebugLog("Registration complete, vault ID: " + newVaultId);
 }
 

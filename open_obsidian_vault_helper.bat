@@ -41,9 +41,13 @@ cscript.exe //NoLogo "!REGISTER_SCRIPT!" "!TARGET_FOLDER!" > "!TEMP_OUTPUT!" 2>&
 type "!TEMP_OUTPUT!"
 echo.
 
-:: Extract VAULT_ID from output
+:: Extract VAULT_ID and status from output (format: VAULT_ID:xxx:NEW or VAULT_ID:xxx:EXISTING)
 set "VAULT_ID="
-for /f "tokens=2 delims=:" %%i in ('type "!TEMP_OUTPUT!" ^| findstr "VAULT_ID:"') do set "VAULT_ID=%%i"
+set "VAULT_STATUS="
+for /f "tokens=2,3 delims=:" %%i in ('type "!TEMP_OUTPUT!" ^| findstr "VAULT_ID:"') do (
+    set "VAULT_ID=%%i"
+    set "VAULT_STATUS=%%j"
+)
 
 :: Clean up temp file
 del "!TEMP_OUTPUT!" 2>nul
@@ -58,6 +62,16 @@ if not defined VAULT_ID (
 )
 
 echo Opening vault with ID: !VAULT_ID!
+
+:: If this is a NEW vault, close Obsidian first so it reloads obsidian.json
+if "!VAULT_STATUS!"=="NEW" (
+    echo New vault detected - closing Obsidian to reload vault list...
+    tasklist /FI "IMAGENAME eq Obsidian.exe" 2>NUL | find /I /N "Obsidian.exe">NUL
+    if !ERRORLEVEL!==0 (
+        taskkill /IM Obsidian.exe /F >NUL 2>&1
+        timeout /T 2 /NOBREAK >NUL
+    )
+)
 
 :: Find Obsidian installation
 set "OBSIDIAN_EXE="
