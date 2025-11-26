@@ -13,6 +13,8 @@ You now have the power to turn any folder into an Obsidian vault directly from w
 - **Instant Vault Access:** Right-click any folder and open it directly in Obsidian
 - **Auto-Initialize:** Automatically creates `.obsidian` configuration if the folder isn't already a vault
 - **Smart Registration:** Registers new vaults in Obsidian's vault list automatically
+- **Multiple Vault Windows:** Opens vaults in new windows, allowing you to work with multiple vaults simultaneously
+- **Smart Vault Restoration:** When opening a new vault for the first time, automatically closes and reopens Obsidian, then restores all previously open vaults
 - **Two Context Menus:**
   1. Right-click directly on a folder
   2. Right-click inside an open folder's background
@@ -73,19 +75,34 @@ When you right-click a folder and select "Open as Obsidian Vault":
 
 2. **Register Vault**
    - JScript (Windows Script Host) reads/updates `%APPDATA%\Roaming\Obsidian\obsidian.json`
+   - Checks if vault already exists (returns `EXISTING`) or creates new entry (returns `NEW`)
    - Adds vault entry with unique ID and path
    - Timestamps the registration
    - Creates automatic backup before modifications
 
-3. **Open in Obsidian**
-   - Uses Obsidian URI scheme: `obsidian://open?vault=<vault-id>`
-   - Obsidian launches and opens the vault immediately
+3. **Smart Opening**
+   - **For NEW vaults:**
+     - Captures list of currently open vaults
+     - Closes Obsidian (so it reloads the updated vault list)
+     - Opens the new vault
+     - Automatically reopens all previously open vaults
+   - **For EXISTING vaults:**
+     - Directly launches Obsidian with the vault ID
+     - Opens in a new window alongside any currently open vaults
+     - No disruption to your existing workflow
+
+4. **Multiple Windows Support**
+   - Directly executes `Obsidian.exe` with the vault protocol URL
+   - Obsidian's native multi-window support allows multiple vaults open simultaneously
+   - Each vault opens in its own window
 
 ### Technical Details
 
 - **Registry Keys:** Context menu entries are added to `HKCU\Software\Classes\Directory\shell`
 - **Installation Path:** Files are installed to `%LOCALAPPDATA%\ObsidianContextMenu`
 - **Vault Registration:** JScript handles JSON manipulation using custom parseJSON() and stringifyJSON() functions
+- **Vault Detection:** `get_open_vaults.js` reads `obsidian.json` to capture currently open vaults before closing
+- **Multi-Window Launch:** Directly executes `Obsidian.exe` with protocol URL parameter for reliable multi-window behavior
 - **Encoding Safety:** Uses FileSystemObject (FSO) to write ASCII without BOM (prevents JSON corruption)
 - **No Admin Required:** Uses per-user registry (HKCU) instead of system-wide (HKLM)
 - **No External Dependencies:** Uses only Windows built-in components (Windows Script Host/cscript.exe)

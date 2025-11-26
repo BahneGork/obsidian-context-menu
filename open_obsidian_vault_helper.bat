@@ -101,7 +101,6 @@ if defined OBSIDIAN_EXE (
 :: If we closed Obsidian and had open vaults, reopen them
 if defined OPEN_VAULTS (
     echo Reopening previously open vaults...
-    echo Open vaults: !OPEN_VAULTS!
     timeout /T 3 /NOBREAK >NUL
 
     :: Replace commas with spaces for iteration
@@ -109,7 +108,6 @@ if defined OPEN_VAULTS (
 
     :: Parse vault IDs and open each one
     for %%v in (!VAULT_LIST!) do (
-        echo Opening vault: %%v
         if defined OBSIDIAN_EXE (
             start "Obsidian" "!OBSIDIAN_EXE!" "obsidian://open?vault=%%v"
         ) else (
