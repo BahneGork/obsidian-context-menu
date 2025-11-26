@@ -206,8 +206,24 @@ Section "Install"
   FileWrite $0 "$\r$\n"
   FileWrite $0 'echo Opening vault with ID: !VAULT_ID!$\r$\n'
   FileWrite $0 "$\r$\n"
-  FileWrite $0 ":: Finally, open the vault in Obsidian using the vault ID$\r$\n"
-  FileWrite $0 'start "" "obsidian://open?vault=!VAULT_ID!"$\r$\n'
+  FileWrite $0 ":: Find Obsidian installation$\r$\n"
+  FileWrite $0 'set "OBSIDIAN_EXE="$\r$\n'
+  FileWrite $0 'if exist "%LOCALAPPDATA%\Obsidian\Obsidian.exe" ($\r$\n'
+  FileWrite $0 '    set "OBSIDIAN_EXE=%LOCALAPPDATA%\Obsidian\Obsidian.exe"$\r$\n'
+  FileWrite $0 ') else if exist "%PROGRAMFILES%\Obsidian\Obsidian.exe" ($\r$\n'
+  FileWrite $0 '    set "OBSIDIAN_EXE=%PROGRAMFILES%\Obsidian\Obsidian.exe"$\r$\n'
+  FileWrite $0 ') else if exist "%PROGRAMFILES(X86)%\Obsidian\Obsidian.exe" ($\r$\n'
+  FileWrite $0 '    set "OBSIDIAN_EXE=%PROGRAMFILES(X86)%\Obsidian\Obsidian.exe"$\r$\n'
+  FileWrite $0 ')$\r$\n'
+  FileWrite $0 "$\r$\n"
+  FileWrite $0 ":: Open vault in Obsidian (will open new window if already running)$\r$\n"
+  FileWrite $0 'echo Opening vault in new window...$\r$\n'
+  FileWrite $0 'if defined OBSIDIAN_EXE ($\r$\n'
+  FileWrite $0 '    start "" "!OBSIDIAN_EXE!" "obsidian://open?vault=!VAULT_ID!"$\r$\n'
+  FileWrite $0 ') else ($\r$\n'
+  FileWrite $0 '    :: Fallback to protocol handler$\r$\n'
+  FileWrite $0 '    start "" "obsidian://open?vault=!VAULT_ID!"$\r$\n'
+  FileWrite $0 ')$\r$\n'
   FileWrite $0 "$\r$\n"
   FileWrite $0 "endlocal$\r$\n"
   FileClose $0
