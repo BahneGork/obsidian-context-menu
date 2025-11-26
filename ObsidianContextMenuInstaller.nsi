@@ -219,7 +219,7 @@ Section "Install"
   FileWrite $0 '    if !ERRORLEVEL!==0 ($\r$\n'
   FileWrite $0 '        :: Get list of currently open vaults before closing$\r$\n'
   FileWrite $0 '        set "GET_VAULTS_SCRIPT=!SCRIPT_DIR!get_open_vaults.js"$\r$\n'
-  FileWrite $0 '        for /f "delims=" %%v in (''cscript.exe //NoLogo "!GET_VAULTS_SCRIPT!"'') do set "OPEN_VAULTS=%%v"$\r$\n'
+  FileWrite $0 "        for /f $\"delims=$\" %%v in ('cscript.exe //NoLogo $\"!GET_VAULTS_SCRIPT!$\"') do set $\"OPEN_VAULTS=%%v$\"$\r$\n"
   FileWrite $0 '$\r$\n'
   FileWrite $0 '        :: Close Obsidian$\r$\n'
   FileWrite $0 '        taskkill /IM Obsidian.exe /F >NUL 2>&1$\r$\n'
