@@ -145,6 +145,7 @@ Section "Install"
   File "install_obsidian_context_menu.bat"
   File "uninstall_obsidian_context_menu.bat"
   File "register_obsidian_vault.js"
+  File "get_open_vaults.js"
 
   ; Create custom batch file with hardcoded installation path
   FileOpen $0 "$INSTDIR\open_obsidian_vault_helper.bat" w
@@ -211,10 +212,16 @@ Section "Install"
   FileWrite $0 'echo Opening vault with ID: !VAULT_ID!$\r$\n'
   FileWrite $0 "$\r$\n"
   FileWrite $0 ":: If this is a NEW vault, close Obsidian first so it reloads obsidian.json$\r$\n"
+  FileWrite $0 'set "OPEN_VAULTS="$\r$\n'
   FileWrite $0 'if "!VAULT_STATUS!"=="NEW" ($\r$\n'
   FileWrite $0 '    echo New vault detected - closing Obsidian to reload vault list...$\r$\n'
   FileWrite $0 '    tasklist /FI "IMAGENAME eq Obsidian.exe" 2>NUL | find /I /N "Obsidian.exe">NUL$\r$\n'
   FileWrite $0 '    if !ERRORLEVEL!==0 ($\r$\n'
+  FileWrite $0 '        :: Get list of currently open vaults before closing$\r$\n'
+  FileWrite $0 '        set "GET_VAULTS_SCRIPT=!SCRIPT_DIR!get_open_vaults.js"$\r$\n'
+  FileWrite $0 '        for /f "delims=" %%v in (''cscript.exe //NoLogo "!GET_VAULTS_SCRIPT!"'') do set "OPEN_VAULTS=%%v"$\r$\n'
+  FileWrite $0 '$\r$\n'
+  FileWrite $0 '        :: Close Obsidian$\r$\n'
   FileWrite $0 '        taskkill /IM Obsidian.exe /F >NUL 2>&1$\r$\n'
   FileWrite $0 '        timeout /T 2 /NOBREAK >NUL$\r$\n'
   FileWrite $0 '    )$\r$\n'
@@ -237,6 +244,22 @@ Section "Install"
   FileWrite $0 ') else ($\r$\n'
   FileWrite $0 '    :: Fallback to protocol handler$\r$\n'
   FileWrite $0 '    start "" "obsidian://open?vault=!VAULT_ID!"$\r$\n'
+  FileWrite $0 ')$\r$\n'
+  FileWrite $0 '$\r$\n'
+  FileWrite $0 ':: If we closed Obsidian and had open vaults, reopen them$\r$\n'
+  FileWrite $0 'if defined OPEN_VAULTS ($\r$\n'
+  FileWrite $0 '    echo Reopening previously open vaults...$\r$\n'
+  FileWrite $0 '    timeout /T 3 /NOBREAK >NUL$\r$\n'
+  FileWrite $0 '$\r$\n'
+  FileWrite $0 '    :: Parse comma-separated vault IDs and open each one$\r$\n'
+  FileWrite $0 '    for %%v in (!OPEN_VAULTS:,= !) do ($\r$\n'
+  FileWrite $0 '        if defined OBSIDIAN_EXE ($\r$\n'
+  FileWrite $0 '            start "Obsidian" "!OBSIDIAN_EXE!" "obsidian://open?vault=%%v"$\r$\n'
+  FileWrite $0 '        ) else ($\r$\n'
+  FileWrite $0 '            start "" "obsidian://open?vault=%%v"$\r$\n'
+  FileWrite $0 '        )$\r$\n'
+  FileWrite $0 '        timeout /T 1 /NOBREAK >NUL$\r$\n'
+  FileWrite $0 '    )$\r$\n'
   FileWrite $0 ')$\r$\n'
   FileWrite $0 "$\r$\n"
   FileWrite $0 "endlocal$\r$\n"

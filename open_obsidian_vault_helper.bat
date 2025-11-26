@@ -64,10 +64,16 @@ if not defined VAULT_ID (
 echo Opening vault with ID: !VAULT_ID!
 
 :: If this is a NEW vault, close Obsidian first so it reloads obsidian.json
+set "OPEN_VAULTS="
 if "!VAULT_STATUS!"=="NEW" (
     echo New vault detected - closing Obsidian to reload vault list...
     tasklist /FI "IMAGENAME eq Obsidian.exe" 2>NUL | find /I /N "Obsidian.exe">NUL
     if !ERRORLEVEL!==0 (
+        :: Get list of currently open vaults before closing
+        set "GET_VAULTS_SCRIPT=!SCRIPT_DIR!get_open_vaults.js"
+        for /f "delims=" %%v in ('cscript.exe //NoLogo "!GET_VAULTS_SCRIPT!"') do set "OPEN_VAULTS=%%v"
+
+        :: Close Obsidian
         taskkill /IM Obsidian.exe /F >NUL 2>&1
         timeout /T 2 /NOBREAK >NUL
     )
@@ -90,6 +96,22 @@ if defined OBSIDIAN_EXE (
 ) else (
     :: Fallback to protocol handler
     start "" "obsidian://open?vault=!VAULT_ID!"
+)
+
+:: If we closed Obsidian and had open vaults, reopen them
+if defined OPEN_VAULTS (
+    echo Reopening previously open vaults...
+    timeout /T 3 /NOBREAK >NUL
+
+    :: Parse comma-separated vault IDs and open each one
+    for %%v in (!OPEN_VAULTS:,= !) do (
+        if defined OBSIDIAN_EXE (
+            start "Obsidian" "!OBSIDIAN_EXE!" "obsidian://open?vault=%%v"
+        ) else (
+            start "" "obsidian://open?vault=%%v"
+        )
+        timeout /T 1 /NOBREAK >NUL
+    )
 )
 
 endlocal
